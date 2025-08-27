@@ -63,7 +63,7 @@ const Dashboard = () => {
         ).length
 
         const totalRevenue = tickets
-          .filter(t => t.payment_status === 'paid' && t.payment_status !== 'expired')
+          .filter(t => (t.payment_status === 'paid' && t.payment_status !== 'expired') || t.delivery_status === 'delivered')
           .reduce((sum, t) => sum + parseFloat(t.total_amount || 0), 0)
 
         setMetrics({
