@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true)
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
+        redirectTo: 'https://eventos.nanosync.com.br/reset-password'
       })
       
       if (error) throw error

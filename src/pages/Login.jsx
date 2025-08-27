@@ -62,7 +62,7 @@ const Login = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -81,15 +81,16 @@ const Login = () => {
           <div style={{
             width: '60px',
             height: '60px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            borderRadius: '50%',
-            margin: '0 auto 1rem',
+            background: 'linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%)',
+            borderRadius: '12px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <span style={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}>NS</span>
-          </div>
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+            color: 'white',
+            fontSize: '24px',
+            fontWeight: 'bold'
+          }}>NS</div>
           <h2 style={{ 
             color: '#1e293b', 
             fontSize: '1.5rem', 
@@ -149,8 +150,8 @@ const Login = () => {
                   transition: 'all 0.2s ease'
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = '#6366f1'
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.1)'
+                  e.target.style.borderColor = '#a855f7'
+                  e.target.style.boxShadow = '0 0 0 3px rgba(168, 85, 247, 0.1)'
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = '#d1d5db'
@@ -238,7 +239,7 @@ const Login = () => {
             disabled={loading}
             style={{
               width: '100%',
-              backgroundColor: '#3b82f6',
+              backgroundColor: '#a855f7',
               borderColor: '#3b82f6',
               border: 'none',
               borderRadius: '8px',
@@ -252,11 +253,13 @@ const Login = () => {
             }}
             onMouseOver={(e) => {
               if (!loading) {
+                e.target.style.backgroundColor = '#9333ea'
                 e.target.style.transform = 'translateY(-1px)'
-                e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)'
+                e.target.style.boxShadow = '0 4px 12px rgba(168, 85, 247, 0.3)'
               }
             }}
             onMouseOut={(e) => {
+              e.target.style.backgroundColor = '#a855f7'
               e.target.style.transform = 'translateY(0)'
               e.target.style.boxShadow = 'none'
             }}
@@ -287,7 +290,7 @@ const Login = () => {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#3b82f6',
+                  color: '#a855f7',
                   textDecoration: 'underline',
                   cursor: 'pointer',
                   fontSize: '14px'
@@ -312,7 +315,7 @@ const Login = () => {
             style={{
               background: 'none',
               border: 'none',
-              color: '#6366f1',
+              color: '#a855f7',
               fontSize: '0.875rem',
               fontWeight: '600',
               cursor: 'pointer',
@@ -429,7 +432,7 @@ const Login = () => {
                       padding: '0.75rem',
                       border: 'none',
                       borderRadius: '0.5rem',
-                      background: '#3b82f6',
+                      background: '#a855f7',
                       color: 'white',
                       cursor: resetLoading ? 'not-allowed' : 'pointer'
                     }}

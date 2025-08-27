@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard'
 import Events from './pages/Events'
 import Orders from './pages/Orders'
 import Customers from './pages/Customers'
+import ResetPassword from './pages/ResetPassword'
 import Layout from './components/layout/Layout'
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
           />
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <Layout>
