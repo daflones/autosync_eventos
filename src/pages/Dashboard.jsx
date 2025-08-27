@@ -87,7 +87,7 @@ const Dashboard = () => {
         console.log('Status counts:', statusCounts)
 
         setStatusData([
-          { label: 'Confirmados', value: statusCounts.confirmed, color: '#10b981' },
+          { label: 'Pagamentos Confirmados', value: statusCounts.confirmed, color: '#10b981' },
           { label: 'Pendentes', value: statusCounts.pending, color: '#f59e0b' },
           { label: 'Cancelados', value: statusCounts.cancelled, color: '#ef4444' },
           { label: 'Expirados', value: statusCounts.expired, color: '#f59e0b' }
@@ -217,7 +217,7 @@ const Dashboard = () => {
             {metrics.todayTickets}
           </h3>
           <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>
-            Ingressos Hoje
+            Ingressos comprados hoje
           </p>
         </div>
 
@@ -539,9 +539,9 @@ const Dashboard = () => {
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Confirmados:</span>
+                <span>Pagamentos Confirmados:</span>
                 <span style={{ fontWeight: '600', color: '#10b981' }}>
-                  {statusData.find(s => s.label === 'Confirmados')?.value || 0}
+                  {statusData.find(s => s.label === 'Pagamentos Confirmados')?.value || 0}
                 </span>
               </div>
             </div>
