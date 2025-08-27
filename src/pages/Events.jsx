@@ -176,8 +176,9 @@ const Events = () => {
 
   return (
     <div style={{ 
-      backgroundColor: 'white',
-      minHeight: '100vh'
+      backgroundColor: '#f8fafc',
+      minHeight: '100vh',
+      padding: '1rem'
     }}>
       {/* Header */}
       <div style={{ 
@@ -455,7 +456,7 @@ const Events = () => {
                   gap: isMobile ? '0.75rem' : '1rem',
                   flex: 1,
                   flexDirection: isMobile ? 'column' : 'row',
-                  alignItems: isMobile ? 'flex-start' : 'center'
+                  alignItems: isMobile ? 'stretch' : 'center'
                 }}>
                   
                   {/* Event Info */}
@@ -471,10 +472,11 @@ const Events = () => {
                     </h3>
                     <div style={{
                       display: 'flex',
-                      gap: isMobile ? '0.5rem' : '1rem',
-                      fontSize: isMobile ? '0.75rem' : '0.8rem',
+                      gap: isMobile ? '0.75rem' : '1rem',
+                      fontSize: isMobile ? '0.8rem' : '0.85rem',
                       color: '#6b7280',
-                      flexDirection: isMobile ? 'column' : 'row'
+                      flexDirection: isMobile ? 'column' : 'row',
+                      marginTop: isMobile ? '0.5rem' : '0'
                     }}>
                       <span>{new Date(event.data).toLocaleDateString('pt-BR')}</span>
                       <span>{event.local}</span>
@@ -487,9 +489,10 @@ const Events = () => {
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: isMobile ? '0.5rem' : '0.75rem',
-                  flexDirection: isMobile ? 'column' : 'row',
-                  width: isMobile ? '100%' : 'auto'
+                  gap: isMobile ? '1rem' : '0.75rem',
+                  flexDirection: isMobile ? 'row' : 'row',
+                  width: isMobile ? '100%' : 'auto',
+                  justifyContent: isMobile ? 'space-between' : 'flex-start'
                 }}>
                   {/* Status Badge */}
                   <span style={{

@@ -125,18 +125,28 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '400px' 
+        backgroundColor: '#f8fafc',
+        minHeight: '100vh',
+        padding: '1rem'
       }}>
-        <LoadingSpinner text="Carregando dashboard..." />
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '400px' 
+        }}>
+          <LoadingSpinner text="Carregando dashboard..." />
+        </div>
       </div>
     )
   }
 
   return (
-    <div>
+    <div style={{ 
+      backgroundColor: '#f8fafc',
+      minHeight: '100vh',
+      padding: '1rem'
+    }}>
       {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ 

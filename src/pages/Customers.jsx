@@ -361,7 +361,11 @@ function Customers() {
   }
 
   return (
-    <div>
+    <div style={{ 
+      backgroundColor: '#f8fafc',
+      minHeight: '100vh',
+      padding: '1rem'
+    }}>
       {/* Header */}
       <div style={{ 
         display: 'flex', 
@@ -442,9 +446,10 @@ function Customers() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
+              gap: isMobile ? '1rem' : '0.75rem',
+              flexDirection: isMobile ? 'row' : 'row',
               width: isMobile ? '100%' : 'auto',
-              justifyContent: 'center',
+              justifyContent: isMobile ? 'space-between' : 'flex-start',
               padding: '0.75rem 1rem',
               backgroundColor: '#8b5cf6',
               color: 'white',
@@ -827,8 +832,10 @@ function Customers() {
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '1rem',
-                    flex: 1
+                    gap: isMobile ? '0.75rem' : '1rem',
+                    flex: 1,
+                    flexDirection: isMobile ? 'column' : 'row',
+                    alignItems: isMobile ? 'stretch' : 'center'
                   }}>
                     {/* Customer Info */}
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -899,10 +906,12 @@ function Customers() {
                         </div>
                         <div style={{
                           display: 'flex',
-                          gap: '1rem',
-                          fontSize: '0.8rem',
+                          gap: isMobile ? '0.75rem' : '1rem',
+                          fontSize: isMobile ? '0.8rem' : '0.85rem',
                           color: '#1f2937',
-                          fontWeight: '500'
+                          fontWeight: '500',
+                          flexDirection: isMobile ? 'column' : 'row',
+                          marginTop: isMobile ? '0.5rem' : '0'
                         }}>
                           <span>{stats.totalTickets} pedidos</span>
                           <span>{stats.paidOrders} pagos</span>

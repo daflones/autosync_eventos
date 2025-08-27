@@ -63,7 +63,7 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-  background-color: var(--bg-secondary);
+  background-color: #f8fafc;
   color: var(--gray-900);
   line-height: 1.5;
   font-synthesis: none;
@@ -111,14 +111,25 @@ body {
 .autofood-card {
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1.25rem;
-  margin-bottom: 0.75rem;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 768px) {
+  .autofood-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
 }
 
 .autofood-card:hover {

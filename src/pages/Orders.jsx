@@ -319,8 +319,9 @@ const Orders = () => {
   if (loading) {
     return (
       <div style={{ 
-        backgroundColor: 'white',
-        minHeight: '100vh'
+        backgroundColor: '#f8fafc',
+        minHeight: '100vh',
+        padding: '1rem'
       }}>
         <style>
           {`
@@ -336,7 +337,11 @@ const Orders = () => {
   }
 
   return (
-    <div>
+    <div style={{ 
+      backgroundColor: '#f8fafc',
+      minHeight: '100vh',
+      padding: '1rem'
+    }}>
       {/* Header */}
       <div style={{ 
         display: 'flex', 
@@ -671,7 +676,7 @@ const Orders = () => {
             Nenhum ingresso encontrado
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1.25rem' : '0.75rem' }}>
             {filteredOrders.map((order) => {
               const getPaymentStatusColor = (status) => {
                 switch (status) {
@@ -794,9 +799,10 @@ const Orders = () => {
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: isMobile ? '0.5rem' : '0.75rem',
+                    gap: isMobile ? '0.75rem' : '1rem',
+                    flex: 1,
                     flexDirection: isMobile ? 'column' : 'row',
-                    width: isMobile ? '100%' : 'auto'
+                    alignItems: isMobile ? 'stretch' : 'center'
                   }}>
                     {/* Status Badges */}
                     <div style={{ 
