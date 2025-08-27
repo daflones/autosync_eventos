@@ -257,7 +257,7 @@ function Customers() {
               gap: '0.25rem'
             }}>
               <div>CPF: {customer.cpf || 'Não informado'}</div>
-              <div>Nascimento: {customer.age ? new Date(customer.age + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado'}</div>
+              <div>{isMobile ? '' : 'Nascimento: '}{customer.age ? new Date(customer.age + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado'}</div>
             </div>
           </div>
           <div style={{
@@ -446,10 +446,7 @@ function Customers() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: isMobile ? '1rem' : '0.75rem',
-              flexDirection: isMobile ? 'row' : 'row',
-              width: isMobile ? '100%' : 'auto',
-              justifyContent: isMobile ? 'space-between' : 'flex-start',
+              gap: '0.5rem',
               padding: '0.75rem 1rem',
               backgroundColor: '#8b5cf6',
               color: 'white',
@@ -458,7 +455,9 @@ function Customers() {
               fontSize: '0.875rem',
               fontWeight: '600',
               cursor: 'pointer',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              width: isMobile ? '100%' : 'auto',
+              justifyContent: 'center'
             }}
             onMouseEnter={(e) => {
               e.target.style.backgroundColor = '#7c3aed'
@@ -868,7 +867,7 @@ function Customers() {
                             color: '#6b7280',
                             marginTop: '0.25rem'
                           }}>
-                            CPF: {customer.cpf || 'Não informado'} • Nascimento: {customer.age ? new Date(customer.age + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado'}
+                            CPF: {customer.cpf || 'Não informado'} • {isMobile ? '' : 'Nascimento: '}{customer.age ? new Date(customer.age + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado'}
                           </div>
                         </div>
                         <div style={{

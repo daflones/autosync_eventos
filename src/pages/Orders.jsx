@@ -742,7 +742,7 @@ const Orders = () => {
                             color: '#6b7280',
                             marginTop: '0.25rem'
                           }}>
-                            CPF: {order.customer?.cpf || 'Não informado'} • Nascimento: {order.customer?.age ? new Date(order.customer.age + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado'}
+                            CPF: {order.customer?.cpf || 'Não informado'} • {isMobile ? '' : 'Nascimento: '}{order.customer?.age ? new Date(order.customer.age + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado'}
                           </div>
                         </div>
                         <div style={{

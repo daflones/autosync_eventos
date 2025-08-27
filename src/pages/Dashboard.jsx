@@ -488,7 +488,7 @@ const Dashboard = () => {
                       {order.customers?.name}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
-                      CPF: {order.customers?.cpf || 'Não informado'} • Nascimento: {order.customers?.age ? new Date(order.customers.age).toLocaleDateString('pt-BR') : 'Não informado'}
+                      CPF: {order.customers?.cpf || 'Não informado'} • {isMobile ? '' : 'Nascimento: '}{order.customers?.age ? new Date(order.customers.age).toLocaleDateString('pt-BR') : 'Não informado'}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
                       {order.events?.nome || 'Evento não encontrado'} • {order.ticket_type} • {order.quantity}x
