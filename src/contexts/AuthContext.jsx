@@ -62,17 +62,38 @@ export const AuthProvider = ({ children }) => {
         password,
         options: {
           data: {
-            full_name: fullName,
+            full_name: fullName
           }
         }
       })
       
       if (error) throw error
       
-      toast.success('Conta criada com sucesso!')
+      if (data.user && !data.user.email_confirmed_at) {
+        toast.success('Verifique seu email para confirmar a conta!')
+      }
+      
       return { data, error: null }
     } catch (error) {
-      toast.error(error.message)
+      console.error('Signup error:', error)
+      return { data: null, error }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const resetPassword = async (email) => {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      })
+      
+      if (error) throw error
+      
+      return { data, error: null }
+    } catch (error) {
+      console.error('Reset password error:', error)
       return { data: null, error }
     } finally {
       setLoading(false)
@@ -98,6 +119,7 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signUp,
     signOut,
+    resetPassword
   }
 
   return (

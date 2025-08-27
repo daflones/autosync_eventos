@@ -8,8 +8,12 @@ const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false)
   const [fullName, setFullName] = useState('')
   const [error, setError] = useState('')
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetLoading, setResetLoading] = useState(false)
+  const [resetMessage, setResetMessage] = useState('')
   
-  const { user, loading, signIn, signUp } = useAuth()
+  const { user, loading, signIn, signUp, resetPassword } = useAuth()
 
   if (user) {
     return <Navigate to="/" replace />
@@ -33,6 +37,25 @@ const Login = () => {
       }
     } catch (err) {
       setError('Erro inesperado. Tente novamente.')
+    }
+  }
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault()
+    setResetLoading(true)
+    setResetMessage('')
+
+    try {
+      const { error } = await resetPassword(resetEmail)
+      if (error) {
+        setResetMessage('Erro: ' + error.message)
+      } else {
+        setResetMessage('Email de recuperação enviado! Verifique sua caixa de entrada.')
+      }
+    } catch (err) {
+      setResetMessage('Erro inesperado. Tente novamente.')
+    } finally {
+      setResetLoading(false)
     }
   }
 
@@ -215,21 +238,22 @@ const Login = () => {
             disabled={loading}
             style={{
               width: '100%',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
+              backgroundColor: '#3b82f6',
+              borderColor: '#3b82f6',
               border: 'none',
-              borderRadius: '0.5rem',
-              padding: '0.875rem 1.5rem',
-              fontSize: '1rem',
+              borderRadius: '8px',
+              padding: '12px',
+              fontSize: '16px',
               fontWeight: '600',
+              marginBottom: '16px',
+              color: 'white',
               cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease',
-              marginBottom: '1rem'
+              transition: 'all 0.2s ease'
             }}
             onMouseOver={(e) => {
               if (!loading) {
                 e.target.style.transform = 'translateY(-1px)'
-                e.target.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.25)'
+                e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)'
               }
             }}
             onMouseOut={(e) => {
@@ -254,6 +278,25 @@ const Login = () => {
               isSignUp ? 'Criar Conta' : 'Entrar'
             )}
           </button>
+
+          {!isSignUp && (
+            <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#3b82f6',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Esqueci minha senha
+              </button>
+            </div>
+          )}
         </form>
 
         <div style={{ textAlign: 'center' }}>
@@ -264,6 +307,7 @@ const Login = () => {
             onClick={() => {
               setIsSignUp(!isSignUp)
               setError('')
+              setShowForgotPassword(false)
             }}
             style={{
               background: 'none',
@@ -284,6 +328,119 @@ const Login = () => {
             {isSignUp ? 'Faça login' : 'Criar nova conta'}
           </button>
         </div>
+
+        {/* Modal de Esqueci a Senha */}
+        {showForgotPassword && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '2rem',
+              width: '90%',
+              maxWidth: '400px',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)'
+            }}>
+              <h3 style={{
+                margin: '0 0 1rem 0',
+                color: '#1f2937',
+                fontSize: '1.25rem',
+                fontWeight: '600'
+              }}>
+                Recuperar Senha
+              </h3>
+              
+              <p style={{
+                color: '#6b7280',
+                fontSize: '0.875rem',
+                marginBottom: '1.5rem'
+              }}>
+                Digite seu email para receber as instruções de recuperação de senha.
+              </p>
+
+              <form onSubmit={handleForgotPassword}>
+                <input
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="Seu email"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.5rem',
+                    fontSize: '0.95rem',
+                    marginBottom: '1rem',
+                    outline: 'none'
+                  }}
+                />
+
+                {resetMessage && (
+                  <div style={{
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                    marginBottom: '1rem',
+                    fontSize: '0.875rem',
+                    backgroundColor: resetMessage.includes('Erro') ? '#fef2f2' : '#f0fdf4',
+                    color: resetMessage.includes('Erro') ? '#dc2626' : '#16a34a',
+                    border: `1px solid ${resetMessage.includes('Erro') ? '#fecaca' : '#bbf7d0'}`
+                  }}>
+                    {resetMessage}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPassword(false)
+                      setResetEmail('')
+                      setResetMessage('')
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '0.5rem',
+                      background: 'white',
+                      color: '#374151',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  
+                  <button
+                    type="submit"
+                    disabled={resetLoading}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      background: '#3b82f6',
+                      color: 'white',
+                      cursor: resetLoading ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {resetLoading ? 'Enviando...' : 'Enviar'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
       </div>
 
