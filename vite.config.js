@@ -24,8 +24,12 @@ export default defineConfig(({ mode }) => {
     },
     preview: {
       host: true,
-      port: 4173,
-      allowedHosts: 'all'
+      port: 80,
+      allowedHosts: [
+        'automaclinic-eventos-nanosync.owelyh.easypanel.host',
+        'eventos.nanosync.com.br',
+        'www.eventos.nanosync.com.br'
+      ]
     }
   }
 })
