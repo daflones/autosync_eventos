@@ -21,6 +21,11 @@ export default defineConfig(({ mode }) => {
             }
           }
         : undefined
+    },
+    preview: {
+      host: true,
+      port: 4173,
+      allowedHosts: 'all'
     }
   }
 })
