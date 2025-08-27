@@ -686,21 +686,29 @@ const Orders = () => {
                   case 'paid': return { bg: '#d1fae5', text: '#065f46', label: 'Pagamento Confirmado', border: '#a7f3d0' }
                   case 'pending': return { bg: '#fef3c7', text: '#92400e', label: 'Pagamento Pendente', border: '#fcd34d' }
                   case 'cancelled': return { bg: '#fee2e2', text: '#991b1b', label: 'Pagamento Cancelado', border: '#fca5a5' }
+                  case 'failed': return { bg: '#fee2e2', text: '#991b1b', label: 'Pagamento Falhou', border: '#fca5a5' }
+                  case 'expired': return { bg: '#fef3c7', text: '#92400e', label: 'INGRESSO EXPIRADO', border: '#fcd34d' }
                   default: return { bg: '#f1f5f9', text: '#475569', label: 'Pagamento Indefinido', border: '#cbd5e1' }
                 }
               }
 
-              const getDeliveryStatusColor = (status) => {
+              const getDeliveryStatusColor = (status, paymentStatus) => {
+                // Se o pagamento está expirado, mostrar status de expirado independente da entrega
+                if (paymentStatus === 'expired') {
+                  return { bg: '#fef3c7', text: '#92400e', label: 'INGRESSO EXPIRADO', border: '#fcd34d' }
+                }
+                
                 switch (status) {
                   case 'delivered': return { bg: '#d1fae5', text: '#065f46', label: 'Ingresso Entregue', border: '#a7f3d0' }
                   case 'shipped': return { bg: '#dbeafe', text: '#1e40af', label: 'Ingresso Enviado', border: '#93c5fd' }
                   case 'pending': return { bg: '#fef3c7', text: '#92400e', label: 'Envio Pendente', border: '#fcd34d' }
-                  default: return { bg: '#f1f5f9', text: '#475569', label: 'Não Enviado', border: '#cbd5e1' }
+                  case 'failed': return { bg: '#fee2e2', text: '#991b1b', label: 'Entrega Falhou', border: '#fca5a5' }
+                  default: return { bg: '#f1f5f9', text: '#475569', label: 'Entrega Indefinida', border: '#cbd5e1' }
                 }
               }
 
               const paymentColors = getPaymentStatusColor(order.payment_status)
-              const deliveryColors = getDeliveryStatusColor(order.delivery_status)
+              const deliveryColors = getDeliveryStatusColor(order.delivery_status, order.payment_status)
 
               return (
                 <div

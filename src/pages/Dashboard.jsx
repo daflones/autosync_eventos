@@ -79,8 +79,8 @@ const Dashboard = () => {
         const statusCounts = {
           confirmed: tickets.filter(t => t.payment_status === 'paid').length,
           pending: tickets.filter(t => t.payment_status === 'pending').length,
-          cancelled: tickets.filter(t => t.payment_status === 'failed').length,
-          expired: tickets.filter(t => t.delivery_status === 'failed').length,
+          cancelled: tickets.filter(t => t.payment_status === 'failed' || t.payment_status === 'cancelled').length,
+          expired: tickets.filter(t => t.payment_status === 'expired').length,
           finished: tickets.filter(t => t.delivery_status === 'delivered').length
         }
 

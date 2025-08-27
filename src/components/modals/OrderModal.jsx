@@ -348,6 +348,9 @@ const OrderModal = ({ show, onHide, onSuccess, order = null }) => {
                 >
                   <option value="pending">Pendente</option>
                   <option value="paid">Pago</option>
+                  <option value="failed">Falhou</option>
+                  <option value="cancelled">Cancelado</option>
+                  <option value="expired">Expirado</option>
                 </Form.Select>
               </Form.Group>
             </Col>
