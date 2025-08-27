@@ -65,7 +65,7 @@ const Login = () => {
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <span style={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}>PE</span>
+            <span style={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}>AS</span>
           </div>
           <h2 style={{ 
             color: '#1e293b', 
@@ -73,14 +73,14 @@ const Login = () => {
             fontWeight: '700',
             margin: '0 0 0.5rem 0'
           }}>
-            Painel Eventos
+            Auto Sync (Eventos)
           </h2>
           <p style={{ 
             color: '#64748b', 
             fontSize: '0.9rem',
             margin: 0
           }}>
-            Gestão moderna para restaurantes
+            Seu gerenciador de eventos inteligente!
           </p>
         </div>
 
@@ -285,35 +285,9 @@ const Login = () => {
           </button>
         </div>
 
-        {!isSignUp && (
-          <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-            <button style={{
-              width: '100%',
-              background: '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.5rem',
-              padding: '0.875rem 1.5rem',
-              fontSize: '0.95rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseOver={(e) => {
-              e.target.style.background = '#059669'
-              e.target.style.transform = 'translateY(-1px)'
-            }}
-            onMouseOut={(e) => {
-              e.target.style.background = '#10b981'
-              e.target.style.transform = 'translateY(0)'
-            }}>
-              🚀 Acessar nossa página de vendas
-            </button>
-          </div>
-        )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }

@@ -1,30 +1,30 @@
 import React, { useState } from 'react'
 import Sidebar from './Sidebar'
+import MobileSidebar from './MobileSidebar'
 import useResponsive from '../../hooks/useResponsive'
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { isMobile, isTablet } = useResponsive()
+  const { isMobile } = useResponsive()
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen)
+  }
+
+  const closeSidebar = () => {
+    setSidebarOpen(false)
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* Desktop Sidebar */}
+      {!isMobile && <Sidebar />}
       
-      {/* Mobile overlay */}
-      {sidebarOpen && isMobile && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 998,
-            opacity: sidebarOpen ? 1 : 0,
-            transition: 'opacity 0.3s ease'
-          }}
-          onClick={() => setSidebarOpen(false)}
+      {/* Mobile Sidebar */}
+      {isMobile && (
+        <MobileSidebar 
+          isOpen={sidebarOpen} 
+          onClose={closeSidebar}
         />
       )}
       
@@ -47,11 +47,7 @@ const Layout = ({ children }) => {
             borderBottom: '1px solid #e5e7eb'
           }}>
             <button
-              onClick={(e) => {
-                e.preventDefault()
-                console.log('Menu button clicked, current state:', sidebarOpen)
-                setSidebarOpen(!sidebarOpen)
-              }}
+              onClick={toggleSidebar}
               style={{
                 display: 'flex',
                 alignItems: 'center',

@@ -9,6 +9,8 @@ const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation()
   const { isMobile } = useResponsive()
 
+  console.log('Sidebar render - isOpen:', isOpen, 'isMobile:', isMobile)
+
   const handleSignOut = () => {
     signOut()
   }
@@ -43,15 +45,16 @@ const Sidebar = ({ isOpen, onClose }) => {
       backgroundColor: 'white',
       color: '#1e293b',
       position: 'fixed',
-      left: isMobile ? (isOpen ? '0' : '-250px') : '0',
+      left: isMobile ? (isOpen ? '0' : '-100%') : '0',
       top: 0,
       zIndex: 1001,
       display: 'flex',
       flexDirection: 'column',
       borderRight: '1px solid #e5e7eb',
       boxShadow: isMobile && isOpen ? '4px 0 12px rgba(0, 0, 0, 0.15)' : '2px 0 4px rgba(0, 0, 0, 0.05)',
-      transition: 'all 0.3s ease',
-      transform: isMobile ? (isOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)'
+      transition: 'left 0.3s ease, transform 0.3s ease',
+      transform: 'translateX(0)',
+      visibility: isMobile ? (isOpen ? 'visible' : 'hidden') : 'visible'
     }}>
       <div style={{ padding: isMobile ? '1.5rem 1rem' : '2rem 1.5rem', flex: 1 }}>
         {/* Mobile close button */}
