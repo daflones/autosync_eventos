@@ -79,10 +79,10 @@ const MobileSidebar = ({ isOpen, onClose }) => {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold' }}>AS</span>
+              <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold' }}>NS</span>
             </div>
             <span style={{ fontSize: '1.125rem', fontWeight: '700', color: '#1e293b' }}>
-              AutoSync
+              NanoSync
             </span>
           </div>
           

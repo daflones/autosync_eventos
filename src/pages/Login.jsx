@@ -65,7 +65,7 @@ const Login = () => {
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <span style={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}>AS</span>
+            <span style={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}>NS</span>
           </div>
           <h2 style={{ 
             color: '#1e293b', 
@@ -73,7 +73,7 @@ const Login = () => {
             fontWeight: '700',
             margin: '0 0 0.5rem 0'
           }}>
-            Auto Sync (Eventos)
+            NanoSync (Eventos)
           </h2>
           <p style={{ 
             color: '#64748b', 

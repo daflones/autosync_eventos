@@ -9,10 +9,10 @@
   <!-- Background Circle -->
   <circle cx="32" cy="32" r="30" fill="url(#logoGradient)" stroke="white" stroke-width="4"/>
   
-  <!-- Auto Sync Icon - Stylized AS with sync arrows -->
+  <!-- NanoSync Icon - Stylized NS with sync arrows -->
   <g transform="translate(32, 32)">
-    <!-- Letter A -->
-    <path d="M-12 8 L-8 -8 L-4 -8 L0 8 M-10 2 L-6 2" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Letter N -->
+    <path d="M-12 8 L-12 -8 M-12 -8 L-4 8 M-4 8 L-4 -8" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
     
     <!-- Letter S -->
     <path d="M4 -6 C6 -8 10 -8 12 -6 C12 -4 10 -2 8 -2 C10 -2 12 0 12 2 C10 4 6 4 4 2" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>

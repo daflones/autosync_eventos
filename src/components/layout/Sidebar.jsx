@@ -106,16 +106,11 @@ const Sidebar = ({ isOpen, onClose }) => {
               justifyContent: 'center',
               boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)'
             }}>
-              <span style={{ color: 'white', fontSize: '16px', fontWeight: 'bold' }}>AS</span>
+              <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold' }}>NS</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ 
-                fontSize: '1.125rem', 
-                fontWeight: '700',
-                color: '#8b5cf6',
-                lineHeight: '1.2'
-              }}>
-                Auto Sync
+              <span style={{ fontSize: '1.125rem', fontWeight: '700', color: '#1e293b' }}>
+                NanoSync
               </span>
               <span style={{ 
                 fontSize: '0.875rem', 

@@ -95,10 +95,10 @@ const Layout = ({ children }) => {
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <span style={{ color: 'white', fontSize: '10px', fontWeight: 'bold' }}>AS</span>
+                <span style={{ color: 'white', fontSize: '10px', fontWeight: 'bold' }}>NS</span>
               </div>
-              <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#8b5cf6' }}>
-                Auto Sync
+              <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1e293b' }}>
+                NanoSync
               </span>
             </div>
           </div>
