@@ -17,6 +17,7 @@ const Events = () => {
   const [eventToDelete, setEventToDelete] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [expandedEvents, setExpandedEvents] = useState(new Set())
 
   useEffect(() => {
     loadEvents()
@@ -482,6 +483,42 @@ const Events = () => {
                       <span>{event.local}</span>
                       <span>🎫 {event.totalTicketsSold || 0} vendidos</span>
                     </div>
+                    
+                    {/* Expanded Event Details */}
+                    {expandedEvents.has(event.id) && (
+                      <div style={{
+                        marginTop: '1rem',
+                        padding: '1rem',
+                        backgroundColor: '#f8fafc',
+                        borderRadius: '8px',
+                        border: '1px solid #e2e8f0'
+                      }}>
+                        <div style={{
+                          fontSize: '0.85rem'
+                        }}>
+                          {event.informacoes ? (
+                            <div>
+                              <strong style={{ color: '#374151' }}>Informações do Evento:</strong>
+                              <div style={{ 
+                                color: '#6b7280', 
+                                marginTop: '0.5rem',
+                                whiteSpace: 'pre-wrap',
+                                lineHeight: '1.5'
+                              }}>
+                                {event.informacoes}
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ 
+                              color: '#9ca3af', 
+                              fontStyle: 'italic' 
+                            }}>
+                              Nenhuma informação adicional disponível para este evento.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -489,10 +526,10 @@ const Events = () => {
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: isMobile ? '1rem' : '0.75rem',
-                  flexDirection: isMobile ? 'row' : 'row',
+                  gap: isMobile ? '0.75rem' : '0.75rem',
+                  flexDirection: isMobile ? 'column' : 'row',
                   width: isMobile ? '100%' : 'auto',
-                  justifyContent: isMobile ? 'space-between' : 'flex-start'
+                  justifyContent: isMobile ? 'stretch' : 'flex-start'
                 }}>
                   {/* Status Badge */}
                   <span style={{
@@ -507,12 +544,53 @@ const Events = () => {
                     {statusColors.label}
                   </span>
 
+                  {/* Show/Hide Details Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setExpandedEvents(prev => {
+                        const newSet = new Set(prev)
+                        if (newSet.has(event.id)) {
+                          newSet.delete(event.id)
+                        } else {
+                          newSet.add(event.id)
+                        }
+                        return newSet
+                      })
+                    }}
+                    style={{
+                      padding: isMobile ? '0.75rem 1rem' : '0.6rem 1rem',
+                      backgroundColor: expandedEvents.has(event.id) ? '#f59e0b' : '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: isMobile ? '0.8rem' : '0.85rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                      width: isMobile ? '100%' : 'auto',
+                      textAlign: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = 'translateY(-1px)'
+                      e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'translateY(0)'
+                      e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    {expandedEvents.has(event.id) ? 'Ocultar informações' : 'Mostrar informações'}
+                  </button>
+
                   {/* Actions */}
                   <div style={{ 
                     display: 'flex', 
-                    gap: '0.25rem',
+                    gap: '0.5rem',
                     width: isMobile ? '100%' : 'auto',
-                    justifyContent: isMobile ? 'flex-end' : 'flex-start'
+                    justifyContent: isMobile ? 'space-between' : 'flex-start'
                   }}>
                     <button
                       onClick={(e) => {
@@ -523,22 +601,25 @@ const Events = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: '32px',
-                        height: '32px',
+                        width: isMobile ? '44px' : '36px',
+                        height: isMobile ? '44px' : '36px',
                         backgroundColor: 'transparent',
                         border: '1px solid #e5e7eb',
-                        borderRadius: '6px',
+                        borderRadius: '8px',
                         cursor: 'pointer',
-                        transition: 'all 0.2s ease'
+                        transition: 'all 0.2s ease',
+                        flex: isMobile ? '1' : 'none'
                       }}
                       onMouseEnter={(e) => {
                         e.target.style.backgroundColor = '#f9fafb'
+                        e.target.style.borderColor = '#d1d5db'
                       }}
                       onMouseLeave={(e) => {
                         e.target.style.backgroundColor = 'transparent'
+                        e.target.style.borderColor = '#e5e7eb'
                       }}
                     >
-                      <Edit2 size={14} color="#6b7280" />
+                      <Edit2 size={isMobile ? 16 : 14} color="#6b7280" />
                     </button>
 
                     <button
@@ -550,13 +631,14 @@ const Events = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: '32px',
-                        height: '32px',
+                        width: isMobile ? '44px' : '36px',
+                        height: isMobile ? '44px' : '36px',
                         backgroundColor: 'transparent',
                         border: '1px solid #e5e7eb',
-                        borderRadius: '6px',
+                        borderRadius: '8px',
                         cursor: 'pointer',
-                        transition: 'all 0.2s ease'
+                        transition: 'all 0.2s ease',
+                        flex: isMobile ? '1' : 'none'
                       }}
                       onMouseEnter={(e) => {
                         e.target.style.backgroundColor = '#fef2f2'
@@ -567,7 +649,7 @@ const Events = () => {
                         e.target.style.borderColor = '#e5e7eb'
                       }}
                     >
-                      <Trash2 size={14} color="#dc2626" />
+                      <Trash2 size={isMobile ? 16 : 14} color="#dc2626" />
                     </button>
                   </div>
                 </div>

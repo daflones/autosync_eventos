@@ -51,7 +51,7 @@ const Dashboard = () => {
         setTickets(tickets)
         const today = new Date().toDateString()
         const todayReservations = tickets.filter(t => 
-          new Date(t.created_at).toDateString() === today
+          new Date(t.created_at).toDateString() === today && t.payment_status === 'paid'
         ).length
 
         const pendingPayments = tickets.filter(t => 

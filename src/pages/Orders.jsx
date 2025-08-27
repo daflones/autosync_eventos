@@ -307,12 +307,15 @@ const Orders = () => {
   const formatSentDate = (sentAt) => {
     if (!sentAt) return null
     const date = new Date(sentAt)
-    return date.toLocaleString('pt-BR', {
+    // Ajustar para timezone local (UTC-3 para Brasil)
+    const localDate = new Date(date.getTime() - (3 * 60 * 60 * 1000))
+    return localDate.toLocaleString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: 'America/Sao_Paulo'
     })
   }
 
