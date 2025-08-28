@@ -48,7 +48,7 @@ const Orders = () => {
             // Carregar customer
             const { data: customer, error: customerError } = await supabase
               .from('customers')
-              .select('id, name, phone, cpf, age')
+              .select('id, name, phone, cpf, rg, age')
               .eq('id', order.customer_id)
               .maybeSingle()
 
@@ -753,7 +753,7 @@ const Orders = () => {
                             color: '#6b7280',
                             marginTop: '0.25rem'
                           }}>
-                            CPF: {order.customer?.cpf || 'Não informado'} • {isMobile ? '' : 'Nascimento: '}{order.customer?.age ? new Date(order.customer.age + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado'}
+                            CPF: {order.customer?.cpf || 'Não informado'} • RG: {order.customer?.rg || 'Não informado'} • {isMobile ? '' : 'Nascimento: '}{order.customer?.age ? new Date(order.customer.age + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado'}
                           </div>
                         </div>
                         <div style={{
@@ -873,7 +873,7 @@ const Orders = () => {
 
                     {/* Actions */}
                     <div style={{ display: 'flex', gap: '0.25rem' }}>
-                      {order.delivery_status !== 'delivered' && !sendingMessages.has(order.id) && (
+                      {order.delivery_status !== 'delivered' && order.payment_status !== 'expired' && !sendingMessages.has(order.id) && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation()

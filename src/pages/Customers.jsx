@@ -21,6 +21,8 @@ function Customers() {
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [customerToDelete, setCustomerToDelete] = useState(null)
+  const [draggedCustomer, setDraggedCustomer] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
 
   useEffect(() => {
     loadCustomers()
@@ -201,29 +203,120 @@ function Customers() {
     }
   }
 
-  // Kanban Card Component
+  // Drag and Drop handlers
+  const handleDragStart = (e, customer) => {
+    setDraggedCustomer(customer)
+    setIsDragging(true)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('application/json', JSON.stringify(customer))
+    
+    // Create a simple drag image
+    const dragElement = e.currentTarget.cloneNode(true)
+    dragElement.style.transform = 'rotate(5deg)'
+    dragElement.style.opacity = '0.8'
+    dragElement.style.position = 'absolute'
+    dragElement.style.top = '-1000px'
+    document.body.appendChild(dragElement)
+    e.dataTransfer.setDragImage(dragElement, 0, 0)
+    
+    setTimeout(() => {
+      document.body.removeChild(dragElement)
+    }, 0)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedCustomer(null)
+    setIsDragging(false)
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDragEnter = (e) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = async (e, newStatus) => {
+    e.preventDefault()
+    
+    const customerData = e.dataTransfer.getData('application/json')
+    if (!customerData) return
+    
+    const customer = JSON.parse(customerData)
+    
+    if (customer.status === newStatus) {
+      setDraggedCustomer(null)
+      setIsDragging(false)
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('customers')
+        .update({ status: newStatus })
+        .eq('id', customer.id)
+
+      if (error) throw error
+
+      // Update local state
+      setCustomers(prev => prev.map(c => 
+        c.id === customer.id 
+          ? { ...c, status: newStatus }
+          : c
+      ))
+
+      const statusNames = {
+        'lead': 'Novos Leads',
+        'customer': 'Clientes Ativos', 
+        'inactive': 'Inativos'
+      }
+      
+      toast.success(`${customer.name} movido para ${statusNames[newStatus]}`)
+    } catch (error) {
+      console.error('Error updating customer status:', error)
+      toast.error('Erro ao mover cliente')
+    } finally {
+      setDraggedCustomer(null)
+      setIsDragging(false)
+    }
+  }
+
   const CustomerKanbanCard = ({ customer, customerStats, handleEditCustomer, handleDeleteCustomer }) => {
     const stats = customerStats[customer.id] || { totalTickets: 0, totalSpent: 0, paidOrders: 0 }
     const statusColor = getStatusColor(customer.status)
     
     return (
-      <div style={{
-        backgroundColor: 'white',
-        border: `2px solid ${statusColor}`,
-        borderRadius: '8px',
-        padding: '1rem',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)'
-        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)'
-        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)'
-      }}>
+      <div 
+        draggable
+        onDragStart={(e) => handleDragStart(e, customer)}
+        onDragEnd={handleDragEnd}
+        style={{
+          backgroundColor: 'white',
+          border: draggedCustomer?.id === customer.id ? '2px solid #8b5cf6' : '1px solid #e2e8f0',
+          borderRadius: '8px',
+          padding: '1rem',
+          cursor: 'grab',
+          transition: 'all 0.2s ease',
+          boxShadow: draggedCustomer?.id === customer.id ? '0 8px 25px rgba(139, 92, 246, 0.3)' : '0 1px 3px rgba(0, 0, 0, 0.1)',
+          opacity: draggedCustomer?.id === customer.id ? 0.8 : 1,
+          transform: draggedCustomer?.id === customer.id ? 'scale(1.02)' : 'scale(1)',
+          userSelect: 'none'
+        }}
+        onMouseEnter={(e) => {
+          if (!isDragging) {
+            e.currentTarget.style.transform = 'translateY(-2px)'
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)'
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isDragging) {
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)'
+          }
+        }}
+>
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -257,6 +350,7 @@ function Customers() {
               gap: '0.25rem'
             }}>
               <div>CPF: {customer.cpf || 'Não informado'}</div>
+              <div>RG: {customer.rg || 'Não informado'}</div>
               <div>{isMobile ? '' : 'Nascimento: '}{customer.age ? new Date(customer.age + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado'}</div>
             </div>
           </div>
@@ -660,12 +754,18 @@ function Customers() {
           marginBottom: '2rem'
         }}>
           {/* Lead Column */}
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            border: '2px solid #e0e7ff',
-            padding: '1.5rem'
-          }}>
+          <div 
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, 'lead')}
+            onDragEnter={handleDragEnter}
+            style={{
+              backgroundColor: isDragging ? '#faf5ff' : 'white',
+              borderRadius: '12px',
+              border: isDragging ? '2px dashed #8b5cf6' : '2px solid #e0e7ff',
+              padding: '1.5rem',
+              minHeight: '200px',
+              transition: 'all 0.2s ease'
+            }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -689,20 +789,37 @@ function Customers() {
                 Novos Leads ({filteredCustomers.filter(c => c.status === 'lead').length})
               </h3>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minHeight: '100px' }}>
               {filteredCustomers.filter(customer => customer.status === 'lead').map(customer => (
                 <CustomerKanbanCard key={customer.id} customer={customer} customerStats={customerStats} handleEditCustomer={handleEditCustomer} handleDeleteCustomer={handleDeleteCustomer} />
               ))}
+              {filteredCustomers.filter(customer => customer.status === 'lead').length === 0 && (
+                <div style={{ 
+                  padding: '2rem', 
+                  textAlign: 'center', 
+                  color: '#64748b', 
+                  fontSize: '0.875rem',
+                  fontStyle: 'italic'
+                }}>
+                  Arraste clientes aqui
+                </div>
+              )}
             </div>
           </div>
 
           {/* Active Column */}
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            border: '2px solid #d1fae5',
-            padding: '1.5rem'
-          }}>
+          <div 
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, 'customer')}
+            onDragEnter={handleDragEnter}
+            style={{
+              backgroundColor: isDragging ? '#f0fdf4' : 'white',
+              borderRadius: '12px',
+              border: isDragging ? '2px dashed #10b981' : '2px solid #d1fae5',
+              padding: '1.5rem',
+              minHeight: '200px',
+              transition: 'all 0.2s ease'
+            }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -726,20 +843,37 @@ function Customers() {
                 Clientes Ativos ({filteredCustomers.filter(c => c.status === 'customer').length})
               </h3>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minHeight: '100px' }}>
               {filteredCustomers.filter(customer => customer.status === 'customer').map(customer => (
                 <CustomerKanbanCard key={customer.id} customer={customer} customerStats={customerStats} handleEditCustomer={handleEditCustomer} handleDeleteCustomer={handleDeleteCustomer} />
               ))}
+              {filteredCustomers.filter(customer => customer.status === 'customer').length === 0 && (
+                <div style={{ 
+                  padding: '2rem', 
+                  textAlign: 'center', 
+                  color: '#64748b', 
+                  fontSize: '0.875rem',
+                  fontStyle: 'italic'
+                }}>
+                  Arraste clientes aqui
+                </div>
+              )}
             </div>
           </div>
 
           {/* Inactive Column */}
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            border: '2px solid #fee2e2',
-            padding: '1.5rem'
-          }}>
+          <div 
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, 'inactive')}
+            onDragEnter={handleDragEnter}
+            style={{
+              backgroundColor: isDragging ? '#fef2f2' : 'white',
+              borderRadius: '12px',
+              border: isDragging ? '2px dashed #ef4444' : '2px solid #fee2e2',
+              padding: '1.5rem',
+              minHeight: '200px',
+              transition: 'all 0.2s ease'
+            }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -763,10 +897,21 @@ function Customers() {
                 Inativos ({filteredCustomers.filter(c => c.status === 'inactive').length})
               </h3>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minHeight: '100px' }}>
               {filteredCustomers.filter(customer => customer.status === 'inactive').map(customer => (
                 <CustomerKanbanCard key={customer.id} customer={customer} customerStats={customerStats} handleEditCustomer={handleEditCustomer} handleDeleteCustomer={handleDeleteCustomer} />
               ))}
+              {filteredCustomers.filter(customer => customer.status === 'inactive').length === 0 && (
+                <div style={{ 
+                  padding: '2rem', 
+                  textAlign: 'center', 
+                  color: '#64748b', 
+                  fontSize: '0.875rem',
+                  fontStyle: 'italic'
+                }}>
+                  Arraste clientes aqui
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -867,7 +1012,7 @@ function Customers() {
                             color: '#6b7280',
                             marginTop: '0.25rem'
                           }}>
-                            CPF: {customer.cpf || 'Não informado'} • {isMobile ? '' : 'Nascimento: '}{customer.age ? new Date(customer.age + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado'}
+                            CPF: {customer.cpf || 'Não informado'} • RG: {customer.rg || 'Não informado'} • {isMobile ? '' : 'Nascimento: '}{customer.age ? new Date(customer.age + 'T00:00:00').toLocaleDateString('pt-BR') : 'Não informado'}
                           </div>
                         </div>
                         <div style={{

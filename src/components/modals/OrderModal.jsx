@@ -278,12 +278,11 @@ const OrderModal = ({ show, onHide, onSuccess, order = null }) => {
               <Form.Group className="mb-3">
                 <Form.Label>Lote *</Form.Label>
                 <Form.Control
-                  type="number"
+                  type="text"
                   name="lote"
                   value={formData.lote}
                   onChange={handleChange}
-                  placeholder="Ex: 1, 2, 3"
-                  min="1"
+                  placeholder="Ex: Lote 1, Promocional, VIP"
                   required
                 />
               </Form.Group>

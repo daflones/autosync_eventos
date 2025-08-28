@@ -15,12 +15,18 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
     frontstage_on: false,
     areagold_on: false,
     lounge_on: false,
+    pista_on: false,
+    camarote_on: false,
     lote_frontsta: '',
     lote_areagold: '',
     lote_lounge: '',
+    lote_pista: '',
+    lote_camarote: '',
     valor_frontst: '',
     valor_areago: '',
     valor_lounge: '',
+    valor_pista: '',
+    valor_camarote: '',
     informacoes: ''
   })
 
@@ -35,12 +41,18 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
         frontstage_on: event.frontstage_on || false,
         areagold_on: event.areagold_on || false,
         lounge_on: event.lounge_on || false,
+        pista_on: event.pista_on || false,
+        camarote_on: event.camarote_on || false,
         lote_frontsta: event.lote_frontsta || '',
         lote_areagold: event.lote_areagold || '',
         lote_lounge: event.lote_lounge || '',
+        lote_pista: event.lote_pista || '',
+        lote_camarote: event.lote_camarote || '',
         valor_frontst: event.valor_frontst || '',
         valor_areago: event.valor_areago || '',
         valor_lounge: event.valor_lounge || '',
+        valor_pista: event.valor_pista || '',
+        valor_camarote: event.valor_camarote || '',
         informacoes: event.informacoes || ''
       })
     } else {
@@ -53,12 +65,18 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
         frontstage_on: false,
         areagold_on: false,
         lounge_on: false,
+        pista_on: false,
+        camarote_on: false,
         lote_frontsta: '',
         lote_areagold: '',
         lote_lounge: '',
+        lote_pista: '',
+        lote_camarote: '',
         valor_frontst: '',
         valor_areago: '',
         valor_lounge: '',
+        valor_pista: '',
+        valor_camarote: '',
         informacoes: ''
       })
     }
@@ -267,6 +285,76 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
                       name="valor_lounge"
                       value={formData.valor_lounge}
                       onChange={handleChange}
+                      style={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
+                    />
+                  </>
+                )}
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col md={isMobile ? 12 : 6}>
+              <Form.Group className="mb-3">
+                <Form.Check
+                  type="checkbox"
+                  name="pista_on"
+                  label="Pista"
+                  checked={formData.pista_on}
+                  onChange={handleChange}
+                />
+                {formData.pista_on && (
+                  <>
+                    <Form.Label className="mt-2">Lote</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="lote_pista"
+                      value={formData.lote_pista}
+                      onChange={handleChange}
+                      placeholder="Ex: Lote 1, Promocional, etc."
+                      style={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
+                    />
+                    <Form.Label className="mt-2">Valor</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="valor_pista"
+                      value={formData.valor_pista}
+                      onChange={handleChange}
+                      placeholder="R$ 100,00"
+                      style={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
+                    />
+                  </>
+                )}
+              </Form.Group>
+            </Col>
+
+            <Col md={isMobile ? 12 : 6}>
+              <Form.Group className="mb-3">
+                <Form.Check
+                  type="checkbox"
+                  name="camarote_on"
+                  label="Camarote"
+                  checked={formData.camarote_on}
+                  onChange={handleChange}
+                />
+                {formData.camarote_on && (
+                  <>
+                    <Form.Label className="mt-2">Lote</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="lote_camarote"
+                      value={formData.lote_camarote}
+                      onChange={handleChange}
+                      placeholder="Ex: Lote 1, Promocional, etc."
+                      style={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
+                    />
+                    <Form.Label className="mt-2">Valor</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="valor_camarote"
+                      value={formData.valor_camarote}
+                      onChange={handleChange}
+                      placeholder="R$ 100,00"
                       style={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
                     />
                   </>
