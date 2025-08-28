@@ -15,9 +15,9 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
     frontstage_on: false,
     areagold_on: false,
     lounge_on: false,
-    lote_frontsta: 0,
-    lote_areagold: 0,
-    lote_lounge: 0,
+    lote_frontsta: '',
+    lote_areagold: '',
+    lote_lounge: '',
     valor_frontst: '',
     valor_areago: '',
     valor_lounge: '',
@@ -35,9 +35,9 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
         frontstage_on: event.frontstage_on || false,
         areagold_on: event.areagold_on || false,
         lounge_on: event.lounge_on || false,
-        lote_frontsta: event.lote_frontsta || 0,
-        lote_areagold: event.lote_areagold || 0,
-        lote_lounge: event.lote_lounge || 0,
+        lote_frontsta: event.lote_frontsta || '',
+        lote_areagold: event.lote_areagold || '',
+        lote_lounge: event.lote_lounge || '',
         valor_frontst: event.valor_frontst || '',
         valor_areago: event.valor_areago || '',
         valor_lounge: event.valor_lounge || '',
@@ -53,9 +53,9 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
         frontstage_on: false,
         areagold_on: false,
         lounge_on: false,
-        lote_frontsta: 0,
-        lote_areagold: 0,
-        lote_lounge: 0,
+        lote_frontsta: '',
+        lote_areagold: '',
+        lote_lounge: '',
         valor_frontst: '',
         valor_areago: '',
         valor_lounge: '',
@@ -78,10 +78,7 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
 
     try {
       const eventData = {
-        ...formData,
-        lote_frontsta: parseInt(formData.lote_frontsta) || 0,
-        lote_areagold: parseInt(formData.lote_areagold) || 0,
-        lote_lounge: parseInt(formData.lote_lounge) || 0
+        ...formData
       }
 
       let result
@@ -192,11 +189,11 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
                   <>
                     <Form.Label className="mt-2">Lote</Form.Label>
                     <Form.Control
-                      type="number"
+                      type="text"
                       name="lote_frontsta"
                       value={formData.lote_frontsta}
                       onChange={handleChange}
-                      min="0"
+                      placeholder="Ex: Lote 1, Promocional, etc."
                     />
                     <Form.Label className="mt-2">Valor</Form.Label>
                     <Form.Control
@@ -224,11 +221,11 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
                   <>
                     <Form.Label className="mt-2">Lote</Form.Label>
                     <Form.Control
-                      type="number"
+                      type="text"
                       name="lote_areagold"
                       value={formData.lote_areagold}
                       onChange={handleChange}
-                      min="0"
+                      placeholder="Ex: Lote 1, Promocional, etc."
                       style={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
                     />
                     <Form.Label className="mt-2">Valor</Form.Label>
@@ -257,11 +254,11 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
                   <>
                     <Form.Label className="mt-2">Lote</Form.Label>
                     <Form.Control
-                      type="number"
+                      type="text"
                       name="lote_lounge"
                       value={formData.lote_lounge}
                       onChange={handleChange}
-                      min="0"
+                      placeholder="Ex: Lote 1, Promocional, etc."
                       style={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
                     />
                     <Form.Label className="mt-2">Valor</Form.Label>
