@@ -59,7 +59,7 @@ const Dashboard = () => {
         ).length
 
         const pendingDeliveries = tickets.filter(t => 
-          t.delivery_status === 'pending'
+          t.delivery_status === 'pending' && t.payment_status === 'paid'
         ).length
 
         const totalRevenue = tickets

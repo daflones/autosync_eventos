@@ -27,7 +27,8 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
     valor_lounge: '',
     valor_pista: '',
     valor_camarote: '',
-    informacoes: ''
+    informacoes: '',
+    regras_setor: ''
   })
 
   // Update form data when event prop changes
@@ -53,7 +54,8 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
         valor_lounge: event.valor_lounge || '',
         valor_pista: event.valor_pista || '',
         valor_camarote: event.valor_camarote || '',
-        informacoes: event.informacoes || ''
+        informacoes: event.informacoes || '',
+        regras_setor: event.regras_setor || ''
       })
     } else {
       // Reset form for new event
@@ -77,7 +79,8 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
         valor_lounge: '',
         valor_pista: '',
         valor_camarote: '',
-        informacoes: ''
+        informacoes: '',
+        regras_setor: ''
       })
     }
   }, [event])
@@ -371,6 +374,19 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
               name="informacoes"
               value={formData.informacoes}
               onChange={handleChange}
+              style={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Regras de Setor</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              name="regras_setor"
+              value={formData.regras_setor}
+              onChange={handleChange}
+              placeholder="Digite as regras específicas para cada setor do evento..."
               style={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
             />
           </Form.Group>

@@ -36,7 +36,7 @@ const Orders = () => {
       setLoading(true)
       const { data, error } = await supabase
         .from('tickets')
-        .select('*')
+        .select('*, mensagem_cliente')
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -856,7 +856,7 @@ const Orders = () => {
                         </span>
                       </div>
                       
-                      {order.messages && order.messages.length > 0 && order.messages[0].sent_at && (
+                      {order.messages && order.messages.length > 0 && order.messages[0].sent_at && (order.delivery_status === 'shipped' || order.delivery_status === 'delivered') && (
                         <div style={{
                           fontSize: '0.7rem',
                           color: '#7c3aed',

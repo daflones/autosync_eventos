@@ -8,6 +8,11 @@ import toast from 'react-hot-toast'
 const MessageModal = ({ show, onHide, customer, ticket, onSuccess }) => {
   // Generate default message with customer name
   const getDefaultMessage = () => {
+    // First check if ticket has a custom message
+    if (ticket?.mensagem_cliente) {
+      return ticket.mensagem_cliente
+    }
+    // Fallback to default message with customer name
     if (customer?.name) {
       return `🎉 Aeee! ${customer.name}! Aqui está seu ingresso com QR Code para o evento! Lembra de levar um documento com foto (RG, CNH ou passaporte) com o mesmo CPF que você cadastrou, beleza? Agora é só curtir! Vai ser show demais! 🎵✨`
     }
@@ -16,10 +21,10 @@ const MessageModal = ({ show, onHide, customer, ticket, onSuccess }) => {
 
   const [message, setMessage] = useState('')
 
-  // Update message when customer changes
+  // Update message when customer or ticket changes
   useEffect(() => {
     setMessage(getDefaultMessage())
-  }, [customer])
+  }, [customer, ticket])
   const [selectedFile, setSelectedFile] = useState(null)
   const [preview, setPreview] = useState(null)
   const [uploading, setUploading] = useState(false)
@@ -94,6 +99,15 @@ const MessageModal = ({ show, onHide, customer, ticket, onSuccess }) => {
     setError('')
 
     try {
+      // Update ticket with new message if it was changed
+      if (message !== getDefaultMessage()) {
+        const { supabase } = await import('../../services/supabase')
+        await supabase
+          .from('tickets')
+          .update({ mensagem_cliente: message })
+          .eq('id', ticket.id)
+      }
+
       // Criar registro de mensagem
       const messageRecord = await createMessageRecord(customer, ticket, message)
       
