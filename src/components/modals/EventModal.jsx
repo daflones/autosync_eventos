@@ -28,7 +28,7 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
     valor_pista: '',
     valor_camarote: '',
     informacoes: '',
-    regras_setor: ''
+    regras_setor: 'FrontStage:                                   Área Gold:                       Pista:                    Camarote:                 '
   })
 
   // Update form data when event prop changes
@@ -80,7 +80,7 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
         valor_pista: '',
         valor_camarote: '',
         informacoes: '',
-        regras_setor: ''
+        regras_setor: 'FrontStage:                                   Área Gold:                       Pista:                    Camarote:                 '
       })
     }
   }, [event])
