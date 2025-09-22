@@ -25,49 +25,71 @@ const MessageModal = ({ show, onHide, customer, ticket, onSuccess }) => {
   useEffect(() => {
     setMessage(getDefaultMessage())
   }, [customer, ticket])
-  const [selectedFile, setSelectedFile] = useState(null)
-  const [preview, setPreview] = useState(null)
+  const [selectedFiles, setSelectedFiles] = useState([])
+  const [previews, setPreviews] = useState([])
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState('')
   const [showFullImage, setShowFullImage] = useState(false)
 
-  const handleFileSelect = (file) => {
+  const handleFileSelect = (files) => {
     try {
-      if (!file) return
+      if (!files || files.length === 0) return
       
-      // Validate file
       const validTypes = ['image/png', 'image/jpeg', 'image/jpg']
       const maxSize = 5 * 1024 * 1024 // 5MB
+      const maxFiles = 5 // Maximum 5 images
       
-      if (!validTypes.includes(file.type)) {
-        throw new Error('Formato não suportado. Use PNG, JPG ou JPEG')
+      // Convert FileList to Array
+      const fileArray = Array.from(files)
+      
+      // Check if adding these files would exceed the limit
+      if (selectedFiles.length + fileArray.length > maxFiles) {
+        throw new Error(`Máximo ${maxFiles} imagens permitidas`)
       }
       
-      if (file.size > maxSize) {
-        throw new Error('Arquivo muito grande. Máximo 5MB')
+      const newFiles = []
+      const newPreviews = []
+      
+      for (const file of fileArray) {
+        // Validate each file
+        if (!validTypes.includes(file.type)) {
+          throw new Error(`Formato não suportado: ${file.name}. Use PNG, JPG ou JPEG`)
+        }
+        
+        if (file.size > maxSize) {
+          throw new Error(`Arquivo muito grande: ${file.name}. Máximo 5MB`)
+        }
+        
+        // Check for duplicates
+        const isDuplicate = selectedFiles.some(existingFile => 
+          existingFile.name === file.name && existingFile.size === file.size
+        )
+        
+        if (!isDuplicate) {
+          newFiles.push(file)
+          newPreviews.push(URL.createObjectURL(file))
+        }
       }
-
-      setSelectedFile(file)
-      setPreview(URL.createObjectURL(file))
+      
+      setSelectedFiles(prev => [...prev, ...newFiles])
+      setPreviews(prev => [...prev, ...newPreviews])
       setError('')
     } catch (err) {
       setError(err.message)
-      setSelectedFile(null)
-      setPreview(null)
     }
   }
 
   const handleInputChange = (e) => {
-    const file = e.target.files[0]
-    handleFileSelect(file)
+    const files = e.target.files
+    handleFileSelect(files)
   }
 
   const handleDrop = (e) => {
     e.preventDefault()
     setDragOver(false)
-    const file = e.dataTransfer.files[0]
-    handleFileSelect(file)
+    const files = e.dataTransfer.files
+    handleFileSelect(files)
   }
 
   const handleDragOver = (e) => {
@@ -80,12 +102,24 @@ const MessageModal = ({ show, onHide, customer, ticket, onSuccess }) => {
     setDragOver(false)
   }
 
-  const removeFile = () => {
-    setSelectedFile(null)
-    if (preview) {
-      URL.revokeObjectURL(preview)
-      setPreview(null)
+  const removeFile = (index) => {
+    // Revoke the URL for the preview being removed
+    if (previews[index]) {
+      URL.revokeObjectURL(previews[index])
     }
+    
+    // Remove the file and preview at the specified index
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
+    setPreviews(prev => prev.filter((_, i) => i !== index))
+    setError('')
+  }
+
+  const removeAllFiles = () => {
+    // Revoke all preview URLs
+    previews.forEach(preview => URL.revokeObjectURL(preview))
+    
+    setSelectedFiles([])
+    setPreviews([])
     setError('')
   }
 
@@ -111,7 +145,7 @@ const MessageModal = ({ show, onHide, customer, ticket, onSuccess }) => {
       // Criar registro de mensagem
       const messageRecord = await createMessageRecord(customer, ticket, message)
       
-      // Enviar mensagem (com ou sem imagem)
+      // Enviar mensagem (com ou sem imagens)
       await sendMessageWithImage({
         message_id: messageRecord.id,
         customer_id: customer.id,
@@ -119,7 +153,7 @@ const MessageModal = ({ show, onHide, customer, ticket, onSuccess }) => {
         name: customer.name,
         message: message,
         ticket_id: ticket.id
-      }, selectedFile)
+      }, selectedFiles)
       
       toast.success('Mensagem enviada com sucesso!')
       if (onSuccess) onSuccess()
@@ -135,7 +169,7 @@ const MessageModal = ({ show, onHide, customer, ticket, onSuccess }) => {
 
   const handleClose = () => {
     setMessage(getDefaultMessage()) // Reset to default message instead of empty
-    removeFile()
+    removeAllFiles()
     setError('')
     setUploading(false)
     onHide()
@@ -200,68 +234,134 @@ const MessageModal = ({ show, onHide, customer, ticket, onSuccess }) => {
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label>Anexar Imagem (Opcional)</Form.Label>
+          <Form.Label>Anexar Imagens (Opcional)</Form.Label>
           
-          {!selectedFile ? (
-            <div
-              className={`upload-area ${dragOver ? 'dragover' : ''}`}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onClick={() => document.getElementById('file-input').click()}
-            >
-              <Upload size={32} className="text-muted mb-2" />
-              <p className="mb-1">Clique ou arraste uma imagem aqui</p>
-              <small className="text-muted">PNG, JPG ou JPEG até 5MB</small>
-              <input
-                id="file-input"
-                type="file"
-                accept="image/png,image/jpeg,image/jpg"
-                onChange={handleInputChange}
-                style={{ display: 'none' }}
-                disabled={uploading}
-              />
-            </div>
-          ) : (
-            <div className="border rounded p-3">
-              <div className="d-flex justify-content-between align-items-start mb-2">
-                <div>
-                  <strong>{selectedFile.name}</strong>
-                  <br />
-                  <small className="text-muted">
-                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                  </small>
-                </div>
+          <div
+            className={`upload-area ${dragOver ? 'dragover' : ''}`}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onClick={() => document.getElementById('file-input').click()}
+            style={{
+              border: '2px dashed #d1d5db',
+              borderRadius: '8px',
+              padding: '2rem',
+              textAlign: 'center',
+              cursor: 'pointer',
+              backgroundColor: dragOver ? '#f3f4f6' : '#fafafa',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <Upload size={32} className="text-muted mb-2" />
+            <p className="mb-1">Clique ou arraste imagens aqui</p>
+            <small className="text-muted">
+              PNG, JPG ou JPEG até 5MB cada • Máximo 5 imagens • 
+              {selectedFiles.length > 0 && ` ${selectedFiles.length}/5 selecionadas`}
+            </small>
+            <input
+              id="file-input"
+              type="file"
+              accept="image/png,image/jpeg,image/jpg"
+              onChange={handleInputChange}
+              style={{ display: 'none' }}
+              disabled={uploading}
+              multiple
+            />
+          </div>
+
+          {selectedFiles.length > 0 && (
+            <div className="mt-3">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <small className="text-muted">
+                  {selectedFiles.length} imagem{selectedFiles.length > 1 ? 'ns' : ''} selecionada{selectedFiles.length > 1 ? 's' : ''}
+                </small>
                 <Button
                   variant="outline-danger"
                   size="sm"
-                  onClick={removeFile}
+                  onClick={removeAllFiles}
                   disabled={uploading}
                 >
-                  <X size={16} />
+                  Remover Todas
                 </Button>
               </div>
-              {preview && (
-                <div style={{ marginTop: '0.5rem' }}>
-                  <img
-                    src={preview}
-                    alt="Preview"
-                    style={{
-                      width: '80px',
-                      height: '80px',
-                      objectFit: 'cover',
+              
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', 
+                gap: '1rem',
+                maxHeight: '300px',
+                overflowY: 'auto',
+                padding: '0.5rem',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                backgroundColor: '#fafafa'
+              }}>
+                {selectedFiles.map((file, index) => (
+                  <div key={index} className="position-relative">
+                    <div style={{
+                      border: '1px solid #e5e7eb',
                       borderRadius: '8px',
-                      cursor: 'pointer',
-                      border: '2px solid #e5e7eb'
-                    }}
-                    onClick={() => setShowFullImage(true)}
-                    title="Clique para expandir"
-                  />
-                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                    Clique na imagem para expandir
+                      padding: '0.5rem',
+                      backgroundColor: 'white'
+                    }}>
+                      <div className="d-flex justify-content-between align-items-start mb-2">
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            color: '#374151',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {file.name}
+                          </div>
+                          <div style={{
+                            fontSize: '0.65rem',
+                            color: '#6b7280'
+                          }}>
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => removeFile(index)}
+                          disabled={uploading}
+                          style={{
+                            padding: '0.25rem',
+                            fontSize: '0.75rem',
+                            lineHeight: 1
+                          }}
+                        >
+                          <X size={12} />
+                        </Button>
+                      </div>
+                      
+                      {previews[index] && (
+                        <div>
+                          <img
+                            src={previews[index]}
+                            alt={`Preview ${index + 1}`}
+                            style={{
+                              width: '100%',
+                              height: '80px',
+                              objectFit: 'cover',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              border: '1px solid #e5e7eb'
+                            }}
+                            onClick={() => {
+                              setShowFullImage(previews[index])
+                            }}
+                            title="Clique para expandir"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           )}
         </Form.Group>
@@ -306,7 +406,7 @@ const MessageModal = ({ show, onHide, customer, ticket, onSuccess }) => {
       {/* Full Image Modal */}
       {showFullImage && (
         <Modal 
-          show={showFullImage} 
+          show={!!showFullImage} 
           onHide={() => setShowFullImage(false)} 
           size="lg"
           centered
@@ -316,7 +416,7 @@ const MessageModal = ({ show, onHide, customer, ticket, onSuccess }) => {
           </Modal.Header>
           <Modal.Body style={{ textAlign: 'center', padding: '2rem' }}>
             <img
-              src={preview}
+              src={showFullImage}
               alt="Imagem completa"
               style={{
                 maxWidth: '100%',
