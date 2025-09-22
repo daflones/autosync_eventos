@@ -63,8 +63,9 @@ const OrderModal = ({ show, onHide, onSuccess, order = null }) => {
       console.log('Evento selecionado:', event)
       setSelectedEvent(event)
       
-      // Reset setor e lote quando evento muda
-      if (!order) {
+      // Reset setor e lote apenas quando evento muda em um novo pedido
+      // Para edição, manter os valores atuais
+      if (!order && events.length > 0) {
         setFormData(prev => ({
           ...prev,
           setor: '',
@@ -174,7 +175,7 @@ const OrderModal = ({ show, onHide, onSuccess, order = null }) => {
       const orderData = {
         ...formData,
         quantity: parseInt(formData.quantity),
-        lote: parseInt(formData.lote),
+        lote: formData.lote, // Manter como string para aceitar texto
         total_amount: typeof formData.total_amount === 'string' 
           ? parseFloat(formData.total_amount.replace(/[^\d,]/g, '').replace(',', '.'))
           : parseFloat(formData.total_amount || 0),
