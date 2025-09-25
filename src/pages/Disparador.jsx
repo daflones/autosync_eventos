@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Send, Users, MessageSquare, Calendar, Filter, Eye, Play, Pause, Trash2, Upload, Edit } from 'lucide-react'
+import { Plus, Send, Users, MessageSquare, Calendar, Filter, Eye, Play, Pause, Trash2, Upload, Edit, RefreshCw } from 'lucide-react'
 import { supabase, fileToBase64, uploadImage } from '../services/supabase'
 import { disparadorService } from '../services/disparadorService'
 import LoadingSpinner from '../components/common/LoadingSpinner'
@@ -102,21 +102,43 @@ const Disparador = () => {
     try {
       console.log('🔍 Carregando clientes elegíveis para dashboard...')
       
-      // Usar a mesma função RPC que é usada ao criar nova campanha
-      const { data: eligibleCustomers, error } = await supabase
-        .rpc('get_next_eligible_customers', {
-          campaign_uuid: null, // null para buscar todos os elegíveis
-          limit_count: 10000 // Limite alto para contar todos
-        })
+      // 1. Buscar todos os clientes
+      const { data: allCustomers, error: customersError } = await supabase
+        .from('customers')
+        .select('id, name, remotejid')
+        .not('remotejid', 'is', null)
+        .neq('remotejid', '')
       
-      if (error) {
-        console.error('❌ Erro ao carregar clientes elegíveis:', error)
+      if (customersError) {
+        console.error('❌ Erro ao carregar clientes:', customersError)
         setEligibleCustomers([])
         return
       }
       
-      console.log('✅ Total de clientes elegíveis encontrados:', eligibleCustomers?.length || 0)
-      setEligibleCustomers(eligibleCustomers || [])
+      // 2. Buscar clientes que já estão em campanhas (qualquer status)
+      const { data: customersInCampaigns, error: campaignsError } = await supabase
+        .from('disparador_sends')
+        .select('remotejid')
+        .not('remotejid', 'is', null)
+        .neq('remotejid', '')
+      
+      if (campaignsError) {
+        console.error('❌ Erro ao buscar clientes em campanhas:', campaignsError)
+        setEligibleCustomers([])
+        return
+      }
+      
+      // 3. Filtrar clientes elegíveis (excluir os que já estão em campanhas)
+      const busyRemoteJids = new Set(customersInCampaigns?.map(c => c.remotejid) || [])
+      const eligibleCustomers = allCustomers?.filter(customer => 
+        !busyRemoteJids.has(customer.remotejid)
+      ) || []
+      
+      console.log('📊 Dashboard - Total clientes:', allCustomers?.length || 0)
+      console.log('📊 Dashboard - RemoteJIDs em campanhas:', busyRemoteJids.size)
+      console.log('✅ Dashboard - Clientes elegíveis:', eligibleCustomers.length)
+      
+      setEligibleCustomers(eligibleCustomers)
       
     } catch (error) {
       console.error('💥 Erro ao carregar clientes elegíveis:', error)
@@ -357,48 +379,25 @@ const Disparador = () => {
         console.error('❌ Erro ao verificar estrutura:', structError)
       }
       
-      // Função auxiliar para obter IDs de clientes inelegíveis
-      const getIneligibleCustomerIds = async () => {
-        console.log('🔍 Calculando clientes inelegíveis...')
-        
-        // 1. Clientes em campanhas ativas (dispatching, paused, cancelled)
-        const { data: activeCampaignCustomers } = await supabase
-          .from('disparador_sends')
-          .select('customer_id, disparador_campaigns!inner(status)')
-          .in('disparador_campaigns.status', ['dispatching', 'paused', 'cancelled'])
-        
-        const excludeActiveIds = activeCampaignCustomers?.map(record => record.customer_id) || []
-        console.log('🚫 Clientes em campanhas ativas:', excludeActiveIds.length)
-        
-        // 2. Clientes que receberam disparo há menos de 7 dias
-        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        const { data: recentCustomers } = await supabase
-          .from('disparador_customer_history')
-          .select('customer_id')
-          .gte('sent_at', sevenDaysAgo)
-          .eq('status', 'sent')
-        
-        const excludeRecentIds = recentCustomers?.map(record => record.customer_id) || []
-        console.log('🚫 Clientes com disparo recente (< 7 dias):', excludeRecentIds.length)
-        
-        // 3. Combinar exclusões
-        const allExcludeIds = [...new Set([...excludeActiveIds, ...excludeRecentIds])]
-        console.log('🚫 Total de clientes inelegíveis:', allExcludeIds.length)
-        
-        return allExcludeIds
-      }
-
-      // Obter lista de clientes inelegíveis
-      const ineligibleIds = await getIneligibleCustomerIds()
-
-      // Primeiro, tentar a função RPC
+      // Buscar clientes que já estão em campanhas (qualquer status)
+      console.log('🔍 Buscando clientes já em campanhas...')
+      const { data: customersInCampaigns, error: campaignsError } = await supabase
+        .from('disparador_sends')
+        .select('remotejid')
+        .not('remotejid', 'is', null)
+        .neq('remotejid', '')
+      
+      const busyRemoteJids = new Set(customersInCampaigns?.map(c => c.remotejid) || [])
+      console.log('🚫 RemoteJIDs já em campanhas:', busyRemoteJids.size)
+      
+      // Usar função RPC e aplicar filtro de remotejid
       let eligibleCustomers = null
-      console.log('🎯 TENTATIVA 1: Função RPC get_next_eligible_customers')
+      console.log('🎯 Tentando função RPC get_next_eligible_customers')
       try {
         const { data: rpcData, error: rpcError } = await supabase
           .rpc('get_next_eligible_customers', {
             campaign_uuid: null,
-            limit_count: 100
+            limit_count: 200 // Aumentar limite para compensar filtro
           })
         
         console.log('📊 Resultado RPC:', {
@@ -408,12 +407,12 @@ const Disparador = () => {
         })
         
         if (!rpcError && rpcData) {
-          // Filtrar clientes inelegíveis do resultado RPC
+          // Filtrar clientes cujo remotejid já está em campanhas
           eligibleCustomers = rpcData.filter(customer => 
-            !ineligibleIds.includes(customer.customer_id)
+            !busyRemoteJids.has(customer.remotejid)
           )
-          console.log('✅ Função RPC funcionou:', rpcData.length, '→ Após filtros:', eligibleCustomers.length)
-          console.log('📝 Amostra RPC:', eligibleCustomers.slice(0, 3))
+          console.log('✅ Função RPC funcionou:', rpcData.length, '→ Após filtro remotejid:', eligibleCustomers.length)
+          console.log('📝 Amostra após filtro:', eligibleCustomers.slice(0, 3))
         } else {
           console.log('⚠️ Função RPC falhou:', rpcError?.message)
         }
@@ -584,12 +583,6 @@ const Disparador = () => {
       console.log('📋 campaignCustomers:', limitedCustomers.length)
       console.log('✅ selectedCampaignCustomers:', limitedCustomers.length)
       
-      if (eligibleCustomers.length < 30) {
-        toast.info(`${eligibleCustomers.length} clientes encontrados (todos selecionados)`)
-      } else {
-        toast.success(`${eligibleCustomers.length} clientes elegíveis encontrados (mostrando 30 primeiros, todos selecionados)`)
-      }
-      
     } catch (error) {
       console.error('💥 Erro geral ao carregar clientes:', error)
       toast.error(`Erro ao carregar clientes: ${error.message}`)
@@ -597,6 +590,17 @@ const Disparador = () => {
     
     console.log('🚪 Abrindo modal de criação...')
     setShowCreateModal(true)
+    
+    // Toast de feedback após abrir o modal
+    setTimeout(() => {
+      if (campaignCustomers.length > 0) {
+        if (campaignCustomers.length < 30) {
+          toast.info(`${campaignCustomers.length} clientes encontrados (todos selecionados)`)
+        } else {
+          toast.success(`Clientes elegíveis carregados (mostrando 30 primeiros, todos selecionados)`)
+        }
+      }
+    }, 100)
     
     // DEBUG: Verificar estados após um pequeno delay
     setTimeout(() => {
@@ -723,6 +727,104 @@ const Disparador = () => {
     } catch (error) {
       console.error('Error pausing campaign:', error)
       toast.error('Erro ao pausar campanha')
+    }
+  }
+
+  // Função para fechar modal ao clicar fora
+  const handleModalBackdropClick = (e, closeFunction) => {
+    if (e.target === e.currentTarget) {
+      closeFunction()
+    }
+  }
+
+  // Função para converter phone em remotejid
+  const convertPhoneToRemotejid = (phone) => {
+    if (!phone || phone === 'null' || phone === '') {
+      return null;
+    }
+
+    // Se já é um remotejid, retornar como está
+    if (phone.includes('@')) {
+      return phone;
+    }
+
+    // Limpar número (remover caracteres não numéricos)
+    const cleanNumber = phone.replace(/\D/g, '');
+    
+    if (cleanNumber.length === 11) {
+      // 11 dígitos: adicionar 55 (se não houver) + @s.whatsapp.net
+      return `55${cleanNumber}@s.whatsapp.net`;
+    } else if (cleanNumber.length === 13) {
+      // 13 dígitos: usar @lid
+      return `${cleanNumber}@lid`;
+    } else if (cleanNumber.length === 14) {
+      // 14 dígitos: usar @lid
+      return `${cleanNumber}@lid`;
+    } else if (cleanNumber.length === 15) {
+      // 15 dígitos: usar @lid
+      return `${cleanNumber}@lid`;
+    }
+
+    // Se não atender as condições, retornar null
+    return null;
+  }
+
+  // Função para atualizar remotejid de todos os clientes baseado no phone
+  const handleUpdateRemoteJids = async () => {
+    try {
+      setLoading(true)
+      console.log('🔄 Iniciando conversão de Phone para RemoteJID...')
+
+      // Buscar todos os clientes que têm phone
+      const { data: customers, error: fetchError } = await supabase
+        .from('customers')
+        .select('id, name, phone, remotejid')
+        .not('phone', 'is', null)
+        .neq('phone', '')
+
+      if (fetchError) {
+        throw fetchError
+      }
+
+      console.log(`📋 Encontrados ${customers.length} clientes com phone para processar`)
+
+      let updatedCount = 0
+      let skippedCount = 0
+      let errorCount = 0
+
+      // Processar cada cliente
+      for (const customer of customers) {
+        const newRemotejid = convertPhoneToRemotejid(customer.phone)
+
+        if (newRemotejid) {
+          // Atualizar remotejid baseado no phone
+          const { error: updateError } = await supabase
+            .from('customers')
+            .update({ remotejid: newRemotejid })
+            .eq('id', customer.id)
+
+          if (updateError) {
+            console.error(`❌ Erro ao atualizar cliente ${customer.name}:`, updateError)
+            errorCount++
+          } else {
+            console.log(`✅ ${customer.name}: ${customer.phone} → ${newRemotejid}`)
+            updatedCount++
+          }
+        } else {
+          console.log(`⚠️ ${customer.name}: Phone inválido (${customer.phone}) - pulado`)
+          skippedCount++
+        }
+      }
+
+      const message = `✅ Conversão concluída! ${updatedCount} atualizados, ${skippedCount} pulados, ${errorCount} erros`
+      toast.success(message)
+      console.log(`🎯 ${message}`)
+
+    } catch (error) {
+      console.error('❌ Erro ao converter Phone para RemoteJID:', error)
+      toast.error('Erro ao converter números de telefone')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -1275,6 +1377,49 @@ const Disparador = () => {
           }}>
             Campanhas ({campaigns.length})
           </h2>
+          
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button 
+              onClick={handleUpdateRemoteJids}
+              disabled={loading}
+              style={{
+                display: 'none', // Ocultar botão Converter Phone → RemoteJID
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 1.5rem',
+                backgroundColor: loading ? '#9ca3af' : '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}
+            >
+              <RefreshCw size={16} />
+              {loading ? 'Convertendo...' : 'Converter Phone → RemoteJID'}
+            </button>
+            
+            <button 
+              onClick={handleCreateNew}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 1.5rem',
+                backgroundColor: '#8b5cf6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
+            >
+              <Plus size={16} />
+              Nova Campanha
+            </button>
+          </div>
         </div>
 
 
@@ -1291,10 +1436,32 @@ const Disparador = () => {
             <p style={{ marginBottom: '1.5rem' }}>
               Crie sua primeira campanha de disparos para começar
             </p>
+            <div style={{ display: 'flex', gap: '1rem' }}>
             <button 
-              onClick={() => setShowCreateModal(true)}
+              onClick={handleUpdateRemoteJids}
+              disabled={loading}
               style={{
-                display: 'inline-flex',
+                display: 'none', // Ocultar botão Converter Phone → RemoteJID
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 1.5rem',
+                backgroundColor: loading ? '#9ca3af' : '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}
+            >
+              <RefreshCw size={16} />
+              {loading ? 'Convertendo...' : 'Converter Phone → RemoteJID'}
+            </button>
+            
+            <button 
+              onClick={handleCreateNew}
+              style={{
+                display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
                 padding: '0.75rem 1.5rem',
@@ -1308,8 +1475,9 @@ const Disparador = () => {
               }}
             >
               <Plus size={16} />
-              Criar Primeira Campanha
+              Nova Campanha
             </button>
+          </div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -1546,19 +1714,33 @@ const Disparador = () => {
 
       {/* Create Campaign Modal */}
       {showCreateModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '1rem'
-        }}>
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}
+          onClick={(e) => handleModalBackdropClick(e, () => {
+            setShowCreateModal(false)
+            setEditingCampaign(null)
+            setNewCampaign({
+              name: '',
+              message_base: '',
+              tone: 'profissional',
+              daily_limit: 30,
+              image_file: null,
+              image_preview: null
+            })
+          })}
+        >
           <div style={{
             backgroundColor: 'white',
             borderRadius: '16px',
@@ -1943,19 +2125,22 @@ const Disparador = () => {
 
       {/* Modal de Seleção de Clientes */}
       {showCustomerSelection && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '1rem'
-        }}>
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}
+          onClick={(e) => handleModalBackdropClick(e, () => setShowCustomerSelection(false))}
+        >
           <div style={{
             backgroundColor: 'white',
             borderRadius: '16px',
@@ -2131,19 +2316,22 @@ const Disparador = () => {
 
       {/* View Campaign Modal */}
       {showViewModal && selectedCampaign && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '1rem'
-        }}>
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}
+          onClick={(e) => handleModalBackdropClick(e, () => setShowViewModal(false))}
+        >
           <div style={{
             backgroundColor: 'white',
             borderRadius: '16px',
@@ -2386,18 +2574,21 @@ const Disparador = () => {
 
       {/* Painel de Controle do Disparo Pausado */}
       {showTimedDispatchPanel && timedDispatchStatus && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}
+          onClick={(e) => handleModalBackdropClick(e, () => setShowTimedDispatchPanel(false))}
+        >
           <div style={{
             backgroundColor: 'white',
             borderRadius: '12px',
