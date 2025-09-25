@@ -180,10 +180,8 @@ const OrderModal = ({ show, onHide, onSuccess, order = null }) => {
           ? parseFloat(formData.total_amount.replace(/[^\d,]/g, '').replace(',', '.'))
           : parseFloat(formData.total_amount || 0),
         ticket_type: formData.setor, // Usar setor como tipo de ingresso
-        // Garantir que setor seja um dos valores válidos
-        setor: formData.setor && ['frontstage', 'areagold', 'lounge'].includes(formData.setor) 
-          ? formData.setor 
-          : null
+        // Manter setor como digitado pelo usuário
+        setor: formData.setor || null
       }
 
       console.log('Dados sendo enviados:', orderData)

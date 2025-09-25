@@ -48,7 +48,7 @@ const Orders = () => {
             // Carregar customer
             const { data: customer, error: customerError } = await supabase
               .from('customers')
-              .select('id, name, phone, cpf, rg, age')
+              .select('id, name, phone, cpf, rg, age, remotejid')
               .eq('id', order.customer_id)
               .maybeSingle()
 

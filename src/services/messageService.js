@@ -10,7 +10,7 @@ export const sendMessageWithImage = async (messageData, files = []) => {
     if (!files || files.length === 0) {
       const payload = {
         customer_id: messageData.customer_id,
-        phone: `${messageData.phone}@s.whatsapp.net`,
+        remotejid: messageData.remotejid,
         name: messageData.name,
         message: messageData.message,
         ticket_id: messageData.ticket_id
@@ -67,7 +67,7 @@ export const sendMessageWithImage = async (messageData, files = []) => {
       // 4. Preparar payload para esta imagem
       const payload = {
         customer_id: messageData.customer_id,
-        phone: `${messageData.phone}@s.whatsapp.net`,
+        remotejid: messageData.remotejid,
         name: messageData.name,
         message: i === 0 ? messageData.message : '', // Apenas primeira imagem tem mensagem
         ticket_id: messageData.ticket_id,

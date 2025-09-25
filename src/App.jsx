@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard'
 import Events from './pages/Events'
 import Orders from './pages/Orders'
 import Customers from './pages/Customers'
+import Disparador from './pages/Disparador'
 import ResetPassword from './pages/ResetPassword'
 import Layout from './components/layout/Layout'
 
@@ -54,6 +55,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Customers />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/disparador" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Disparador />
                 </Layout>
               </ProtectedRoute>
             } />

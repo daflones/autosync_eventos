@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { BarChart3, ShoppingCart, Users, Calendar, LogOut, X } from 'lucide-react'
+import { BarChart3, ShoppingCart, Users, Calendar, Send, LogOut, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import useResponsive from '../../hooks/useResponsive'
 
@@ -21,7 +21,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/', icon: BarChart3, label: 'Dashboard' },
     { path: '/events', icon: Calendar, label: 'Eventos' },
     { path: '/orders', icon: ShoppingCart, label: 'Ingressos' },
-    { path: '/customers', icon: Users, label: 'Clientes' }
+    { path: '/customers', icon: Users, label: 'Clientes' },
+    { path: '/disparador', icon: Send, label: 'Disparador' }
   ]
 
   // Close sidebar on route change for mobile
