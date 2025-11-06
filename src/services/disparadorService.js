@@ -2,7 +2,7 @@ import axios from 'axios'
 import { supabase } from './supabase'
 import toast from 'react-hot-toast'
 
-const WEBHOOK_URL = 'https://n8n.agenciagvcompany.com.br/webhook/disparador_eventos'
+const WEBHOOK_URL = 'https://n8n.nanosync.com.br/webhook/disparador_eventos'
 
 // Função para validar e corrigir remotejid
 const validateAndFixRemotejid = (remotejid) => {
