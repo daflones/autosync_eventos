@@ -56,7 +56,6 @@ export const disparadorService = {
       if (error) throw error
       return data
     } catch (error) {
-      console.error('Error creating campaign:', error)
       throw error
     }
   },
@@ -93,11 +92,8 @@ export const disparadorService = {
 
         if (customersError) throw customersError
       }
-
-      console.log(`✅ Campanha criada com ${selectedCustomers.length} clientes atrelados`)
       return campaign
     } catch (error) {
-      console.error('Error creating campaign with customers:', error)
       throw error
     }
   },
@@ -114,7 +110,6 @@ export const disparadorService = {
       if (error) throw error
       return data || []
     } catch (error) {
-      console.error('Error getting eligible customers:', error)
       throw error
     }
   },
@@ -147,7 +142,6 @@ export const disparadorService = {
         remaining: limit - sentToday
       }
     } catch (error) {
-      console.error('Error checking daily limit:', error)
       return { canSend: false, sentToday: 0, limit: 30, remaining: 0 }
     }
   },
@@ -230,15 +224,12 @@ export const disparadorService = {
       }
 
       // 4. Enviar para N8N
-      console.log('Enviando para webhook:', WEBHOOK_URL, payload)
       const response = await axios.post(WEBHOOK_URL, payload, {
         timeout: 30000,
         headers: {
           'Content-Type': 'application/json'
         }
       })
-      console.log('Resposta do webhook:', response.status, response.data)
-
       // 5. Atualizar status do envio
       await supabase
         .from('disparador_sends')
@@ -268,8 +259,6 @@ export const disparadorService = {
       return { success: true, sendRecord, response: response.data }
 
     } catch (error) {
-      console.error('Error sending message:', error)
-      
       // Atualizar status como falhou se o registro foi criado
       if (sendRecord?.id) {
         await supabase
@@ -360,7 +349,6 @@ export const disparadorService = {
       }
 
     } catch (error) {
-      console.error('Error processing campaign:', error)
       throw error
     }
   },
@@ -388,7 +376,6 @@ export const disparadorService = {
         })
 
     } catch (error) {
-      console.error('Error updating daily limit:', error)
     }
   },
 
@@ -414,7 +401,6 @@ export const disparadorService = {
         .eq('id', campaignId)
 
     } catch (error) {
-      console.error('Error updating campaign stats:', error)
     }
   },
 
@@ -429,7 +415,6 @@ export const disparadorService = {
       if (error) throw error
       return { success: true }
     } catch (error) {
-      console.error('Error pausing campaign:', error)
       throw error
     }
   },
@@ -445,7 +430,6 @@ export const disparadorService = {
       if (error) throw error
       return { success: true }
     } catch (error) {
-      console.error('Error resuming campaign:', error)
       throw error
     }
   },
@@ -477,7 +461,6 @@ export const disparadorService = {
         history: history || []
       }
     } catch (error) {
-      console.error('Error getting campaign details:', error)
       throw error
     }
   },
@@ -492,14 +475,12 @@ export const disparadorService = {
         .limit(1)
 
       if (error) {
-        console.error('Error checking campaigns:', error)
         return null
       }
       
       // Se não há campanhas, retorna null
       return data && data.length > 0 ? null : null
     } catch (error) {
-      console.error('Error checking active campaign:', error)
       return null
     }
   },
@@ -507,8 +488,6 @@ export const disparadorService = {
   // Iniciar disparo agendado
   async startScheduledDispatch(campaignId, customersData, campaign) {
     try {
-      console.log('Iniciando disparo agendado para:', customersData.length, 'clientes')
-
       // Verificar se já existe campanha ativa
       const activeCampaign = await this.checkActiveCampaign()
       if (activeCampaign) {
@@ -548,7 +527,6 @@ export const disparadorService = {
         try {
           await this.processNextScheduledSend()
         } catch (error) {
-          console.error('Erro ao processar primeiro envio:', error)
         }
       }, 1000) // 1 segundo de delay
 
@@ -559,7 +537,6 @@ export const disparadorService = {
       }
 
     } catch (error) {
-      console.error('Error starting scheduled dispatch:', error)
       throw error
     }
   },
@@ -581,7 +558,6 @@ export const disparadorService = {
 
       return { success: true }
     } catch (error) {
-      console.error('Error pausing campaign:', error)
       throw error
     }
   },
@@ -606,7 +582,6 @@ export const disparadorService = {
 
       return { success: true }
     } catch (error) {
-      console.error('Error resuming campaign:', error)
       throw error
     }
   },
@@ -633,16 +608,10 @@ export const disparadorService = {
         .single()
 
       if (error || !nextSend) {
-        console.log('Nenhum envio pendente encontrado')
         return null
       }
-
-      console.log('Processando envio pendente:', nextSend.customer_name)
-
       // Enviar webhook individual com remotejid validado
       const validRemotejid = validateAndFixRemotejid(nextSend.remotejid)
-      console.log(`📱 RemoteJID: ${nextSend.remotejid} → ${validRemotejid}`)
-      
       const hasImage = !!(nextSend.disparador_campaigns.image_base64)
       
       const payload = {
@@ -654,16 +623,10 @@ export const disparadorService = {
         has_image: hasImage,
         send_id: nextSend.id
       }
-
-      console.log('🚀 Enviando webhook individual:', payload.name)
-      console.log('🖼️ Has image:', hasImage)
       const response = await axios.post(WEBHOOK_URL, payload, {
         timeout: 30000,
         headers: { 'Content-Type': 'application/json' }
       })
-
-      console.log('Webhook enviado com sucesso:', response.status)
-
       // Atualizar status do envio
       await supabase
         .from('disparador_sends')
@@ -699,8 +662,6 @@ export const disparadorService = {
       return { success: true, sent: payload }
 
     } catch (error) {
-      console.error('Error processing scheduled send:', error)
-      
       // Marcar envio como falhou se possível
       if (error.nextSend?.id) {
         await supabase
@@ -741,15 +702,12 @@ export const disparadorService = {
           .eq('id', campaignId)
       }
     } catch (error) {
-      console.error('Error checking campaign completion:', error)
     }
   },
 
   // Enviar todos os dados de uma vez para o webhook (método antigo)
   async sendIndividualWebhooks(campaignId, customersData, campaign) {
     try {
-      console.log('Iniciando disparo para:', customersData.length, 'clientes')
-
       // Marcar campanha como ativa
       await supabase
         .from('disparador_campaigns')
@@ -764,8 +722,6 @@ export const disparadorService = {
         image_base64: campaign.image_base64 || false,
         customers: customersData.map(customer => {
           const validRemotejid = validateAndFixRemotejid(customer.remotejid)
-          console.log(`Cliente ${customer.customer_name}: ${customer.remotejid} → ${validRemotejid}`)
-          
           return {
             customer_id: customer.customer_id,
             remotejid: validRemotejid,
@@ -774,17 +730,11 @@ export const disparadorService = {
           }
         })
       }
-
-      console.log('Enviando payload completo com', payload.customers.length, 'clientes')
-
       // Enviar webhook com todos os dados
       const response = await axios.post(WEBHOOK_URL, payload, {
         timeout: 30000,
         headers: { 'Content-Type': 'application/json' }
       })
-
-      console.log('✅ Webhook enviado com sucesso:', response.status)
-
       // Atualizar histórico dos clientes
       const historyRecords = customersData.map(customer => ({
         customer_id: customer.customer_id,
@@ -804,13 +754,9 @@ export const disparadorService = {
         .from('disparador_campaigns')
         .update({ status: 'dispatched' })
         .eq('id', campaignId)
-
-      console.log('🎉 Disparo finalizado para todos os clientes!')
-
       return { success: true, sent_count: customersData.length }
 
     } catch (error) {
-      console.error('Error sending webhook:', error)
       throw error
     }
   },
@@ -818,15 +764,12 @@ export const disparadorService = {
   // Iniciar disparo pausado com registros já existentes
   async startTimedDispatchWithExistingRecords(campaignId, campaign) {
     try {
-      console.log('🕐 Iniciando disparo pausado para campanha:', campaignId)
-
       // Atualizar status da campanha para 'dispatching'
       try {
         await supabase
           .from('disparador_campaigns')
           .update({ status: 'dispatching' })
           .eq('id', campaignId)
-        console.log('✅ Status da campanha atualizado para: dispatching')
       } catch (statusError) {
         console.log('Status da campanha não foi atualizado (coluna pode não existir):', statusError.message)
       }
@@ -852,7 +795,6 @@ export const disparadorService = {
       }
 
     } catch (error) {
-      console.error('Error starting timed dispatch with existing records:', error)
       throw error
     }
   },
@@ -868,7 +810,6 @@ export const disparadorService = {
           .from('disparador_campaigns')
           .update({ status: 'dispatching' })
           .eq('id', campaignId)
-        console.log('✅ Status da campanha atualizado para: dispatching')
       } catch (statusError) {
         console.log('Status da campanha não foi atualizado (coluna pode não existir):', statusError.message)
       }
@@ -876,8 +817,6 @@ export const disparadorService = {
       // Criar registros de envio com status 'pending' e remotejid validado
       const sendRecords = customersData.map((customer, index) => {
         const validRemotejid = validateAndFixRemotejid(customer.remotejid)
-        console.log(`Cliente ${customer.customer_name}: ${customer.remotejid} → ${validRemotejid}`)
-        
         return {
           campaign_id: campaignId,
           customer_id: customer.customer_id,
@@ -887,19 +826,13 @@ export const disparadorService = {
           status: 'pending'
         }
       })
-
-      console.log('Inserindo registros de envio:', sendRecords.length)
       const { data: insertData, error: insertError } = await supabase
         .from('disparador_sends')
         .insert(sendRecords)
         
       if (insertError) {
-        console.error('Erro ao inserir registros de envio:', insertError)
         throw insertError
       }
-      
-      console.log('Registros inseridos com sucesso:', insertData?.length || sendRecords.length)
-
       // Iniciar o timer para processar envios
       await this.startDispatchTimer(campaignId)
 
@@ -913,7 +846,6 @@ export const disparadorService = {
       }
 
     } catch (error) {
-      console.error('Error starting timed dispatch:', error)
       throw error
     }
   },
@@ -925,39 +857,27 @@ export const disparadorService = {
   STORAGE_KEY: 'disparador_active_campaigns',
   
   async startDispatchTimer(campaignId) {
-    console.log('🔄 === MODO EDGE FUNCTION ATIVO ===')
-    console.log('📋 Campanha ID:', campaignId)
-    console.log('🌐 Edge Function processará os envios automaticamente')
     console.log('⏰ Intervalo: 10 minutos (configurado no cron)')
     
     // Não criar timer no frontend - Edge Function fará o trabalho
     // Apenas salvar referência para controle de status
     this.activeCampaignId = campaignId
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify([campaignId]))
-    
-    console.log('✅ Configuração concluída - Edge Function assumirá o controle')
-    console.log('📊 Campanha ativa registrada:', this.activeCampaignId)
   },
 
   stopDispatchTimer() {
     if (this.dispatchTimer) {
       clearInterval(this.dispatchTimer)
       this.dispatchTimer = null
-      console.log('⏹️ Timer de disparo parado')
     }
     
     // Limpar campanha ativa do localStorage
     localStorage.removeItem(this.STORAGE_KEY)
     this.activeCampaignId = null
-    console.log('🧹 Campanha ativa removida do localStorage')
   },
 
   // Edge Function processará os envios - função removida do frontend
   async processNextTimedSend(campaignId) {
-    console.log('🔄 === TESTE MANUAL DE ENVIO ===')
-    console.log('📋 Campanha ID:', campaignId)
-    console.log('🌐 Chamando Edge Function para processar...')
-    
     try {
       // Chamar a Edge Function diretamente para teste
       const response = await fetch('https://yczwxthqfladdufmcprm.supabase.co/functions/v1/process-campaign-sends', {
@@ -969,11 +889,9 @@ export const disparadorService = {
       })
       
       const result = await response.json()
-      console.log('✅ Edge Function executada:', result)
       return result
       
     } catch (error) {
-      console.error('❌ Erro ao chamar Edge Function:', error)
       throw error
     }
   },
@@ -1015,7 +933,6 @@ export const disparadorService = {
 
       if (shouldFinish) {
         if (successRate === 100) {
-          console.log('🎯 Campanha finalizada - 100% de sucesso atingido:', campaignId)
         } else {
           console.log('🏁 Campanha finalizada (sem pendentes nem falhas):', campaignId)
         }
@@ -1029,15 +946,12 @@ export const disparadorService = {
             .from('disparador_campaigns')
             .update({ status: 'dispatched' })
             .eq('id', campaignId)
-          console.log('✅ Status da campanha atualizado para: dispatched')
         } catch (statusError) {
           console.log('Status da campanha não foi atualizado (coluna pode não existir):', statusError.message)
         }
       } else {
-        console.log(`🔄 Campanha ainda ativa - Pendentes: ${pendingSends?.length || 0}, Falhas para retry: ${failedSends?.length || 0}, Sucesso: ${successRate}%`)
       }
     } catch (error) {
-      console.error('Error checking timed campaign completion:', error)
     }
   },
 
@@ -1053,16 +967,11 @@ export const disparadorService = {
           .from('disparador_campaigns')
           .update({ status: 'paused' })
           .eq('id', campaignId)
-        console.log('✅ Status da campanha atualizado para: paused')
       } catch (statusError) {
         console.log('Status da campanha não foi atualizado (coluna pode não existir):', statusError.message)
       }
-      
-      console.log('⏸️ Disparo pausado para campanha:', campaignId)
-      
       return { success: true, message: 'Disparo pausado com sucesso' }
     } catch (error) {
-      console.error('Error pausing timed dispatch:', error)
       throw error
     }
   },
@@ -1075,18 +984,14 @@ export const disparadorService = {
           .from('disparador_campaigns')
           .update({ status: 'dispatching' })
           .eq('id', campaignId)
-        console.log('✅ Status da campanha atualizado para: dispatching')
       } catch (statusError) {
         console.log('Status da campanha não foi atualizado (coluna pode não existir):', statusError.message)
       }
       
       // Reiniciar timer
       await this.startDispatchTimer(campaignId)
-      
-      console.log('▶️ Disparo retomado para campanha:', campaignId)
       return { success: true }
     } catch (error) {
-      console.error('Error resuming timed dispatch:', error)
       throw error
     }
   },
@@ -1109,11 +1014,8 @@ export const disparadorService = {
 
       // Atualizar estatísticas da campanha após cancelamento
       await this.updateCampaignStats(campaignId)
-
-      console.log('❌ Disparo cancelado para campanha:', campaignId)
       return { success: true }
     } catch (error) {
-      console.error('Error cancelling timed dispatch:', error)
       throw error
     }
   },
@@ -1121,16 +1023,11 @@ export const disparadorService = {
   // Corrigir status incorretos na tabela disparador_sends
   async fixIncorrectStatus(campaignId) {
     try {
-      console.log('🔧 === CORRIGINDO STATUS INCORRETOS ===')
-      
       // Buscar todos os registros da campanha
       const { data: sends } = await supabase
         .from('disparador_sends')
         .select('id, status, sent_at, error_message')
         .eq('campaign_id', campaignId)
-      
-      console.log(`📋 Total de registros encontrados: ${sends?.length || 0}`)
-      
       let corrected = 0
       
       for (const send of sends || []) {
@@ -1147,15 +1044,11 @@ export const disparadorService = {
             .eq('id', send.id)
           
           corrected++
-          console.log(`✅ Corrigido registro ${send.id}: failed → pending`)
         }
       }
-      
-      console.log(`🎯 Total de registros corrigidos: ${corrected}`)
       return { corrected }
       
     } catch (error) {
-      console.error('❌ Erro ao corrigir status:', error)
       throw error
     }
   },
@@ -1178,9 +1071,6 @@ export const disparadorService = {
       const sent = sends?.filter(s => s.status === 'sent').length || 0
       const pending = sends?.filter(s => s.status === 'pending').length || 0
       const failed = sends?.filter(s => s.status === 'failed').length || 0
-      
-      console.log('📊 === STATUS DO DISPARO PAUSADO ===')
-      console.log(`📤 Total de registros: ${total}`)
       console.log(`✅ Enviadas (status='sent'): ${sent}`)
       console.log(`⏳ Pendentes (status='pending'): ${pending}`)
       console.log(`❌ Falhas (status='failed'): ${failed}`)
@@ -1192,8 +1082,6 @@ export const disparadorService = {
         acc[send.status] = (acc[send.status] || 0) + 1
         return acc
       }, {})
-      console.log('📊 Contagem por status:', statusCounts)
-
       return {
         campaign: {
           ...campaign,
@@ -1208,7 +1096,6 @@ export const disparadorService = {
         }
       }
     } catch (error) {
-      console.error('Error getting timed dispatch status:', error)
       throw error
     }
   }

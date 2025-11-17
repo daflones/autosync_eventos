@@ -6,6 +6,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Events from './pages/Events'
+import EventSectors from './pages/EventSectors'
 import Orders from './pages/Orders'
 import Customers from './pages/Customers'
 import Disparador from './pages/Disparador'
@@ -41,6 +42,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Events />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/events/sectors" element={
+              <ProtectedRoute>
+                <Layout>
+                  <EventSectors />
                 </Layout>
               </ProtectedRoute>
             } />

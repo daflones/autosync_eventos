@@ -77,7 +77,6 @@ const Orders = () => {
               messages: messages || []
             }
           } catch (relError) {
-            console.error('Error loading relations for ticket:', order.id, relError)
             return {
               ...order,
               customer: {},
@@ -90,7 +89,6 @@ const Orders = () => {
       
       setOrders(ordersWithRelations)
     } catch (error) {
-      console.error('Error loading orders:', error)
       toast.error('Erro ao carregar ingressos')
     } finally {
       setLoading(false)
@@ -187,8 +185,6 @@ const Orders = () => {
     if (!orderToDelete) return
     
     try {
-      console.log('Tentando excluir pedido ID:', orderToDelete)
-      
       // Primeiro, excluir mensagens relacionadas ao ticket
       const { error: messagesError } = await supabase
         .from('messages')
@@ -196,7 +192,6 @@ const Orders = () => {
         .eq('ticket_id', orderToDelete)
       
       if (messagesError) {
-        console.error('Erro ao excluir mensagens:', messagesError)
         throw messagesError
       }
       
@@ -207,7 +202,6 @@ const Orders = () => {
         .eq('id', orderToDelete)
 
       if (error) {
-        console.error('Erro do Supabase:', error)
         throw error
       }
 
@@ -216,7 +210,6 @@ const Orders = () => {
       setShowConfirmModal(false)
       setOrderToDelete(null)
     } catch (error) {
-      console.error('Erro ao excluir pedido:', error)
       toast.error(`Erro ao excluir ingresso: ${error.message}`)
     }
   }

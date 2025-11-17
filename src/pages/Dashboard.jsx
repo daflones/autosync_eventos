@@ -43,10 +43,6 @@ const Dashboard = () => {
       const { data: customers } = await supabase
         .from('customers')
         .select('*')
-
-      console.log('Tickets loaded:', tickets)
-      console.log('Tickets count:', tickets?.length)
-
       if (tickets) {
         setTickets(tickets)
         const today = new Date().toDateString()
@@ -83,9 +79,6 @@ const Dashboard = () => {
           expired: tickets.filter(t => t.payment_status === 'expired').length,
           finished: tickets.filter(t => t.delivery_status === 'delivered').length
         }
-
-        console.log('Status counts:', statusCounts)
-
         setStatusData([
           { label: 'Pagamentos Confirmados', value: statusCounts.confirmed, color: '#10b981' },
           { label: 'Pendentes', value: statusCounts.pending, color: '#f59e0b' },
@@ -116,7 +109,6 @@ const Dashboard = () => {
         setRecentOrders(orders)
       }
     } catch (error) {
-      console.error('Error loading dashboard data:', error)
     } finally {
       setLoading(false)
     }

@@ -63,7 +63,6 @@ function Customers() {
       setCustomers(customersData || [])
       setCustomerStats(stats)
     } catch (error) {
-      console.error('Error loading customers:', error)
       toast.error('Erro ao carregar clientes')
     } finally {
       setLoading(false)
@@ -89,8 +88,6 @@ function Customers() {
     if (!customerToDelete) return
     
     try {
-      console.log('Tentando excluir cliente ID:', customerToDelete.id)
-      
       // Primeiro, buscar tickets do cliente
       const { data: customerTickets, error: ticketsQueryError } = await supabase
         .from('tickets')
@@ -98,7 +95,6 @@ function Customers() {
         .eq('customer_id', customerToDelete.id)
       
       if (ticketsQueryError) {
-        console.error('Erro ao buscar tickets do cliente:', ticketsQueryError)
       }
       
       // Excluir mensagens relacionadas aos tickets do cliente
@@ -110,7 +106,6 @@ function Customers() {
           .in('ticket_id', ticketIds)
         
         if (messagesError) {
-          console.error('Erro ao excluir mensagens:', messagesError)
         }
       }
       
@@ -121,7 +116,6 @@ function Customers() {
         .eq('customer_id', customerToDelete.id)
       
       if (directMessagesError) {
-        console.error('Erro ao excluir mensagens diretas:', directMessagesError)
       }
       
       // Depois, excluir tickets do cliente
@@ -131,7 +125,6 @@ function Customers() {
         .eq('customer_id', customerToDelete.id)
       
       if (ticketsError) {
-        console.error('Erro ao excluir tickets:', ticketsError)
         throw ticketsError
       }
       
@@ -142,7 +135,6 @@ function Customers() {
         .eq('id', customerToDelete.id)
 
       if (error) {
-        console.error('Erro do Supabase:', error)
         throw error
       }
       
@@ -151,7 +143,6 @@ function Customers() {
       setShowConfirmModal(false)
       setCustomerToDelete(null)
     } catch (error) {
-      console.error('Error deleting customer:', error)
       toast.error(`Erro ao excluir cliente: ${error.message}`)
     }
   }
@@ -275,7 +266,6 @@ function Customers() {
       
       toast.success(`${customer.name} movido para ${statusNames[newStatus]}`)
     } catch (error) {
-      console.error('Error updating customer status:', error)
       toast.error('Erro ao mover cliente')
     } finally {
       setDraggedCustomer(null)

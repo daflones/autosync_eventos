@@ -60,7 +60,6 @@ const OrderModal = ({ show, onHide, onSuccess, order = null }) => {
   useEffect(() => {
     if (formData.event_id) {
       const event = events.find(e => e.id === formData.event_id)
-      console.log('Evento selecionado:', event)
       setSelectedEvent(event)
       
       // Reset setor e lote apenas quando evento muda em um novo pedido
@@ -85,7 +84,6 @@ const OrderModal = ({ show, onHide, onSuccess, order = null }) => {
       if (error) throw error
       setCustomers(data || [])
     } catch (error) {
-      console.error('Error loading customers:', error)
       toast.error('Erro ao carregar clientes')
     }
   }
@@ -100,7 +98,6 @@ const OrderModal = ({ show, onHide, onSuccess, order = null }) => {
       if (error) throw error
       setEvents(data || [])
     } catch (error) {
-      console.error('Error loading events:', error)
     }
   }
 
@@ -124,11 +121,8 @@ const OrderModal = ({ show, onHide, onSuccess, order = null }) => {
 
   const getAvailableSectors = () => {
     if (!selectedEvent) {
-      console.log('Nenhum evento selecionado')
       return []
     }
-    
-    console.log('Verificando setores para evento:', selectedEvent)
     const sectors = []
     
     if (selectedEvent.frontstage_on) {
@@ -140,8 +134,6 @@ const OrderModal = ({ show, onHide, onSuccess, order = null }) => {
     if (selectedEvent.lounge_on) {
       sectors.push({ value: 'lounge', label: 'Lounge' })
     }
-    
-    console.log('Setores disponíveis:', sectors)
     return sectors
   }
 
@@ -183,9 +175,6 @@ const OrderModal = ({ show, onHide, onSuccess, order = null }) => {
         // Manter setor como digitado pelo usuário
         setor: formData.setor || null
       }
-
-      console.log('Dados sendo enviados:', orderData)
-
       let result
       if (order) {
         // Update existing order
@@ -206,7 +195,6 @@ const OrderModal = ({ show, onHide, onSuccess, order = null }) => {
       onSuccess()
       onHide()
     } catch (error) {
-      console.error('Error saving order:', error)
       toast.error('Erro ao salvar pedido')
     } finally {
       setLoading(false)

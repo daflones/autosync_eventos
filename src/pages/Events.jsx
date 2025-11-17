@@ -58,7 +58,6 @@ const Events = () => {
 
       setEvents(eventsWithStats || [])
     } catch (error) {
-      console.error('Error loading events:', error)
       toast.error('Erro ao carregar eventos')
     } finally {
       setLoading(false)
@@ -84,8 +83,6 @@ const Events = () => {
     if (!eventToDelete) return
     
     try {
-      console.log('Tentando excluir evento ID:', eventToDelete)
-      
       // Primeiro, buscar IDs dos tickets do evento
       const { data: ticketIds, error: ticketIdsError } = await supabase
         .from('tickets')
@@ -93,7 +90,6 @@ const Events = () => {
         .eq('event_id', eventToDelete)
       
       if (ticketIdsError) {
-        console.error('Erro ao buscar tickets:', ticketIdsError)
       }
       
       // Excluir mensagens relacionadas aos tickets
@@ -105,7 +101,6 @@ const Events = () => {
           .in('ticket_id', ticketIdArray)
         
         if (messagesError) {
-          console.error('Erro ao excluir mensagens:', messagesError)
         }
       }
       
@@ -116,7 +111,6 @@ const Events = () => {
         .eq('event_id', eventToDelete)
       
       if (ticketsError) {
-        console.error('Erro ao excluir tickets:', ticketsError)
         throw ticketsError
       }
       
@@ -127,7 +121,6 @@ const Events = () => {
         .eq('id', eventToDelete)
 
       if (error) {
-        console.error('Erro do Supabase:', error)
         throw error
       }
 
@@ -136,7 +129,6 @@ const Events = () => {
       setShowConfirmModal(false)
       setEventToDelete(null)
     } catch (error) {
-      console.error('Erro ao excluir evento:', error)
       toast.error(`Erro ao excluir evento: ${error.message}`)
     }
   }
@@ -428,22 +420,80 @@ const Events = () => {
             // Determinar status baseado na data do evento
             const eventDate = new Date(event.data)
             const currentDate = new Date()
-            const isEventPast = eventDate < currentDate
-            
-            const actualStatus = isEventPast ? 'finalizado' : 'programado'
-            
-            const getStatusColor = (eventDate) => {
-              const today = new Date()
-              const eventDateObj = new Date(eventDate)
-              
-              if (eventDateObj < today) {
-                return { bg: '#f1f5f9', text: '#475569', label: 'Finalizado', border: '#cbd5e1' }
-              } else {
+            currentDate.setHours(0, 0, 0, 0)
+
+            const getStatusColor = (eventDateObj) => {
+              if (!(eventDateObj instanceof Date) || Number.isNaN(eventDateObj.getTime())) {
                 return { bg: '#dbeafe', text: '#1e40af', label: 'Programado', border: '#93c5fd' }
+              }
+
+              const compareDate = new Date(eventDateObj.getFullYear(), eventDateObj.getMonth(), eventDateObj.getDate())
+
+              if (compareDate < currentDate) {
+                return { bg: '#f1f5f9', text: '#475569', label: 'Finalizado', border: '#cbd5e1' }
+              }
+
+              return { bg: '#dbeafe', text: '#1e40af', label: 'Programado', border: '#93c5fd' }
+            }
+
+            const normalizeDateValue = (value) => {
+              if (!value) return null
+              if (typeof value === 'string') return value
+              if (typeof value === 'object') {
+                if (value.date) return value.date
+                if (value.value) return value.value
+              }
+              return null
+            }
+
+            const extractDateParts = (value) => {
+              const normalized = normalizeDateValue(value)
+              if (!normalized) return null
+              const match = /^([0-9]{4})-([0-9]{2})-([0-9]{2})/.exec(normalized)
+              if (!match) return null
+              const [, year, month, day] = match
+              return {
+                year: Number(year),
+                month: Number(month),
+                day: Number(day)
               }
             }
 
-            const statusColors = getStatusColor(event.data)
+            const formatDateParts = ({ day, month, year }) => {
+              const dd = String(day).padStart(2, '0')
+              const mm = String(month).padStart(2, '0')
+              return `${dd}/${mm}/${year}`
+            }
+
+            const toDateObject = (parts) => new Date(parts.year, parts.month - 1, parts.day)
+
+            const rawDates = Array.isArray(event.dates)
+              ? event.dates
+              : Array.isArray(event.datas)
+                ? event.datas
+                : event.data
+                  ? [event.data]
+                  : []
+
+            const datePartsList = rawDates
+              .map(extractDateParts)
+              .filter(Boolean)
+
+            const formattedDates = datePartsList.map((parts, index) => ({
+              id: `${event.id}-date-${index}`,
+              label: formatDateParts(parts),
+              dateObj: toDateObject(parts)
+            }))
+
+            const fallbackDateParts = extractDateParts(event.data)
+            const primaryDateObj = formattedDates[0]?.dateObj || (fallbackDateParts ? toDateObject(fallbackDateParts) : null)
+            const summaryDateLabel = formattedDates[0]?.label
+              || (fallbackDateParts ? formatDateParts(fallbackDateParts) : 'Data não informada')
+
+            const statusColors = getStatusColor(primaryDateObj)
+
+            const sectors = Array.isArray(event.sectors_config) ? event.sectors_config : []
+            const activeSectorsCount = sectors.filter((sector) => sector?.active !== false).length
 
             return (
               <div
@@ -479,7 +529,7 @@ const Events = () => {
                       flexDirection: isMobile ? 'column' : 'row',
                       marginTop: isMobile ? '0.5rem' : '0'
                     }}>
-                      <span>{new Date(event.data).toLocaleDateString('pt-BR')}</span>
+                      <span>{summaryDateLabel}</span>
                       <span>{event.local}</span>
                       <span>🎫 {event.totalTicketsSold || 0} vendidos</span>
                     </div>
@@ -488,35 +538,157 @@ const Events = () => {
                     {expandedEvents.has(event.id) && (
                       <div style={{
                         marginTop: '1rem',
-                        padding: '1rem',
+                        padding: '1.25rem',
                         backgroundColor: '#f8fafc',
-                        borderRadius: '8px',
-                        border: '1px solid #e2e8f0'
+                        borderRadius: '12px',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: '0 2px 8px rgba(148, 163, 184, 0.12)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1.5rem'
                       }}>
-                        <div style={{
-                          fontSize: '0.85rem'
-                        }}>
-                          {event.informacoes ? (
-                            <div>
-                              <strong style={{ color: '#374151' }}>Informações do Evento:</strong>
-                              <div style={{ 
-                                color: '#6b7280', 
-                                marginTop: '0.5rem',
-                                whiteSpace: 'pre-wrap',
-                                lineHeight: '1.5'
-                              }}>
-                                {event.informacoes}
-                              </div>
+                        <section>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginBottom: '0.75rem'
+                          }}>
+                            <strong style={{ color: '#1f2937' }}>Datas do evento</strong>
+                            {event.horario && (
+                              <span style={{ color: '#6366f1', fontWeight: 600, fontSize: '0.8rem' }}>
+                                Horário padrão: {event.horario}
+                              </span>
+                            )}
+                          </div>
+                          {formattedDates.length > 0 ? (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                              {formattedDates.map((dateInfo) => (
+                                <span
+                                  key={dateInfo.id}
+                                  style={{
+                                    padding: '0.35rem 0.75rem',
+                                    backgroundColor: '#e0e7ff',
+                                    borderRadius: '999px',
+                                    fontSize: '0.8rem',
+                                    color: '#312e81',
+                                    fontWeight: 600
+                                  }}
+                                >
+                                  {dateInfo.label}
+                                </span>
+                              ))}
                             </div>
                           ) : (
-                            <div style={{ 
-                              color: '#9ca3af', 
-                              fontStyle: 'italic' 
-                            }}>
-                              Nenhuma informação adicional disponível para este evento.
-                            </div>
+                            <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.85rem' }}>
+                              Nenhuma data cadastrada.
+                            </span>
                           )}
-                        </div>
+                        </section>
+
+                        <section>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginBottom: '0.75rem'
+                          }}>
+                            <strong style={{ color: '#1f2937' }}>Setores</strong>
+                            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                              {activeSectorsCount} ativos · {sectors.length} cadastrados
+                            </span>
+                          </div>
+                          {sectors.length > 0 ? (
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))',
+                              gap: '0.8rem'
+                            }}>
+                              {sectors.map((sector, idx) => (
+                                <div
+                                  key={`${sector?.sector_id || sector?.name || idx}`}
+                                  style={{
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: '10px',
+                                    padding: '0.9rem',
+                                    backgroundColor: 'white',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.4rem'
+                                  }}
+                                >
+                                  <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                  }}>
+                                    <span style={{ fontWeight: 600, color: '#1f2937' }}>
+                                      {sector?.name || 'Setor sem nome'}
+                                    </span>
+                                    <span style={{
+                                      fontSize: '0.75rem',
+                                      padding: '0.15rem 0.55rem',
+                                      borderRadius: '999px',
+                                      backgroundColor: sector?.active !== false ? '#dcfce7' : '#fee2e2',
+                                      color: sector?.active !== false ? '#15803d' : '#b91c1c'
+                                    }}>
+                                      {sector?.active !== false ? 'Ativo' : 'Inativo'}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '0.8rem', color: '#475569' }}>
+                                    <div>
+                                      <strong style={{ color: '#1e293b' }}>Preço:</strong>{' '}
+                                      {sector?.price ? sector.price : 'Não informado'}
+                                    </div>
+                                    <div>
+                                      <strong style={{ color: '#1e293b' }}>Lote:</strong>{' '}
+                                      {sector?.lot ? sector.lot : 'Não informado'}
+                                    </div>
+                                  </div>
+                                  {sector?.rules?.notes && (
+                                    <div style={{
+                                      marginTop: '0.35rem',
+                                      padding: '0.5rem',
+                                      borderRadius: '8px',
+                                      backgroundColor: '#f1f5f9',
+                                      fontSize: '0.78rem',
+                                      color: '#475569',
+                                      whiteSpace: 'pre-wrap'
+                                    }}>
+                                      {sector.rules.notes}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.85rem' }}>
+                              Nenhum setor configurado.
+                            </span>
+                          )}
+                        </section>
+
+                        <section>
+                          <strong style={{ color: '#1f2937', display: 'block', marginBottom: '0.5rem' }}>
+                            Informações gerais
+                          </strong>
+                          {event.informacoes ? (
+                            <div style={{
+                              color: '#475569',
+                              backgroundColor: '#eef2ff',
+                              borderRadius: '8px',
+                              padding: '0.75rem',
+                              whiteSpace: 'pre-wrap',
+                              lineHeight: 1.45
+                            }}>
+                              {event.informacoes}
+                            </div>
+                          ) : (
+                            <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.85rem' }}>
+                              Nenhuma descrição foi adicionada para este evento.
+                            </span>
+                          )}
+                        </section>
                       </div>
                     )}
                   </div>

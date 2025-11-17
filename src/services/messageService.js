@@ -109,7 +109,6 @@ export const sendMessageWithImage = async (messageData, files = []) => {
       .eq('id', messageData.message_id)
     
     // 9. Marcar ticket específico como mensagem enviada e atualizar delivery_status
-    console.log('Atualizando ticket ID:', messageData.ticket_id)
     const { error: ticketUpdateError } = await supabase
       .from('tickets')
       .update({ 
@@ -120,7 +119,6 @@ export const sendMessageWithImage = async (messageData, files = []) => {
       .eq('id', messageData.ticket_id)
     
     if (ticketUpdateError) {
-      console.error('Erro ao atualizar ticket:', ticketUpdateError)
       throw ticketUpdateError
     }
     

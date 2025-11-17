@@ -72,7 +72,6 @@ const Disparador = () => {
         checkActiveCampaign()
       ])
     } catch (error) {
-      console.error('Error loading data:', error)
       toast.error('Erro ao carregar dados')
     } finally {
       setLoading(false)
@@ -84,7 +83,6 @@ const Disparador = () => {
       const active = await disparadorService.checkActiveCampaign()
       setActiveCampaign(active)
     } catch (error) {
-      console.error('Error checking active campaign:', error)
     }
   }
 
@@ -100,8 +98,6 @@ const Disparador = () => {
 
   const loadEligibleCustomers = async () => {
     try {
-      console.log('🔍 Carregando clientes elegíveis para dashboard...')
-      
       // 1. Buscar todos os clientes
       const { data: allCustomers, error: customersError } = await supabase
         .from('customers')
@@ -110,7 +106,6 @@ const Disparador = () => {
         .neq('remotejid', '')
       
       if (customersError) {
-        console.error('❌ Erro ao carregar clientes:', customersError)
         setEligibleCustomers([])
         return
       }
@@ -123,7 +118,6 @@ const Disparador = () => {
         .neq('remotejid', '')
       
       if (campaignsError) {
-        console.error('❌ Erro ao buscar clientes em campanhas:', campaignsError)
         setEligibleCustomers([])
         return
       }
@@ -133,15 +127,9 @@ const Disparador = () => {
       const eligibleCustomers = allCustomers?.filter(customer => 
         !busyRemoteJids.has(customer.remotejid)
       ) || []
-      
-      console.log('📊 Dashboard - Total clientes:', allCustomers?.length || 0)
-      console.log('📊 Dashboard - RemoteJIDs em campanhas:', busyRemoteJids.size)
-      console.log('✅ Dashboard - Clientes elegíveis:', eligibleCustomers.length)
-      
       setEligibleCustomers(eligibleCustomers)
       
     } catch (error) {
-      console.error('💥 Erro ao carregar clientes elegíveis:', error)
       setEligibleCustomers([])
     }
   }
@@ -149,22 +137,17 @@ const Disparador = () => {
   // Função para marcar campanha como concluída
   const markCampaignAsCompleted = async (campaignId) => {
     try {
-      console.log(`🎯 Marcando campanha ${campaignId} como concluída...`)
-      
       const { error: updateError } = await supabase
         .from('disparador_campaigns')
         .update({ status: 'completed' })
         .eq('id', campaignId)
       
       if (updateError) {
-        console.error('❌ Erro ao atualizar status da campanha:', updateError)
         return false
       } else {
-        console.log('✅ Status da campanha atualizado para: completed')
         return true
       }
     } catch (error) {
-      console.error('❌ Erro ao atualizar status da campanha:', error)
       return false
     }
   }
@@ -212,16 +195,6 @@ const Disparador = () => {
             s.sent_at && 
             s.sent_at.startsWith(today)
           ).length
-          
-          console.log(`📊 Campanha ${campaign.id}:`, {
-            total: totalSends,
-            sent: sentCount,
-            pending: pendingCount,
-            failed: failedCount,
-            sentToday: sentToday,
-            today: today
-          })
-          
           // Verificar se atingiu o limite de 30 envios (apenas para campanhas ativas)
           const isCompleted = sentCount >= 30
           
@@ -246,7 +219,6 @@ const Disparador = () => {
       setCampaignStats(statsMap)
       
     } catch (error) {
-      console.error('Error loading campaign stats:', error)
     }
   }
 
@@ -319,7 +291,6 @@ const Disparador = () => {
         loadData()
       }, 100)
     } catch (error) {
-      console.error('Error saving campaign:', error)
       toast.error(editingCampaign ? 'Erro ao atualizar campanha' : 'Erro ao criar campanha')
     } finally {
       setLoading(false)
@@ -339,48 +310,27 @@ const Disparador = () => {
     
     // DEBUG COMPLETO - Carregar clientes elegíveis
     try {
-      console.log('🔍 === INICIANDO DEBUG COMPLETO ===')
-      console.log('🔍 Carregando clientes elegíveis para nova campanha...')
-      
       // DEBUG: Verificar conexão com Supabase
-      console.log('🔗 Testando conexão com Supabase...')
       try {
         const { data: connectionTest, error: connectionError } = await supabase
           .from('customers')
           .select('count', { count: 'exact', head: true })
-        
-        console.log('📊 Resultado teste de conexão:', {
-          error: connectionError,
-          count: connectionTest
-        })
       } catch (connError) {
-        console.error('❌ Erro de conexão:', connError)
       }
       
       // DEBUG: Verificar estrutura da tabela customers
-      console.log('🏗️ Verificando estrutura da tabela customers...')
       try {
         const { data: sampleCustomers, error: sampleError } = await supabase
           .from('customers')
           .select('*')
           .limit(3)
-        
-        console.log('📋 Amostra da tabela customers:', {
-          error: sampleError,
-          count: sampleCustomers?.length || 0,
-          sample: sampleCustomers
-        })
-        
         if (sampleCustomers && sampleCustomers.length > 0) {
           console.log('🔍 Campos disponíveis:', Object.keys(sampleCustomers[0]))
-          console.log('📝 Exemplo de cliente:', sampleCustomers[0])
         }
       } catch (structError) {
-        console.error('❌ Erro ao verificar estrutura:', structError)
       }
       
       // Buscar clientes que já estão em campanhas (qualquer status)
-      console.log('🔍 Buscando clientes já em campanhas...')
       const { data: customersInCampaigns, error: campaignsError } = await supabase
         .from('disparador_sends')
         .select('remotejid')
@@ -388,41 +338,27 @@ const Disparador = () => {
         .neq('remotejid', '')
       
       const busyRemoteJids = new Set(customersInCampaigns?.map(c => c.remotejid) || [])
-      console.log('🚫 RemoteJIDs já em campanhas:', busyRemoteJids.size)
-      
       // Usar função RPC e aplicar filtro de remotejid
       let eligibleCustomers = null
-      console.log('🎯 Tentando função RPC get_next_eligible_customers')
       try {
         const { data: rpcData, error: rpcError } = await supabase
           .rpc('get_next_eligible_customers', {
             campaign_uuid: null,
             limit_count: 200 // Aumentar limite para compensar filtro
           })
-        
-        console.log('📊 Resultado RPC:', {
-          error: rpcError,
-          data: rpcData,
-          length: rpcData?.length || 0
-        })
-        
         if (!rpcError && rpcData) {
           // Filtrar clientes cujo remotejid já está em campanhas
           eligibleCustomers = rpcData.filter(customer => 
             !busyRemoteJids.has(customer.remotejid)
           )
-          console.log('✅ Função RPC funcionou:', rpcData.length, '→ Após filtro remotejid:', eligibleCustomers.length)
           console.log('📝 Amostra após filtro:', eligibleCustomers.slice(0, 3))
         } else {
-          console.log('⚠️ Função RPC falhou:', rpcError?.message)
         }
       } catch (rpcError) {
-        console.log('⚠️ Função RPC não existe ou erro:', rpcError.message)
       }
       
       // Se RPC não funcionou, tentar query direta na view
       if (!eligibleCustomers) {
-        console.log('🎯 TENTATIVA 2: View v_eligible_customers')
         try {
           const { data: viewData, error: viewError } = await supabase
             .from('v_eligible_customers')
@@ -431,13 +367,6 @@ const Disparador = () => {
             .not('remotejid', 'is', null)
             .neq('remotejid', '')
             .limit(100)
-          
-          console.log('📊 Resultado View:', {
-            error: viewError,
-            data: viewData,
-            length: viewData?.length || 0
-          })
-          
           if (!viewError && viewData) {
             // Filtrar clientes inelegíveis do resultado da view
             const filteredViewData = viewData.filter(customer => 
@@ -449,32 +378,21 @@ const Disparador = () => {
               customer_name: customer.name,
               remotejid: customer.remotejid
             }))
-            console.log('✅ View funcionou:', viewData.length, '→ Após filtros:', eligibleCustomers.length)
             console.log('📝 Amostra View:', eligibleCustomers.slice(0, 3))
           } else {
-            console.log('⚠️ View falhou:', viewError?.message)
           }
         } catch (viewError) {
-          console.log('⚠️ View não existe ou erro:', viewError.message)
         }
       }
       
       // Se view não funcionou, query direta na tabela customers
       if (!eligibleCustomers) {
-        console.log('🎯 TENTATIVA 3: Query direta na tabela customers')
-        
         // DEBUG: Primeiro verificar quantos clientes existem no total
         try {
           const { data: totalCustomers, error: totalError } = await supabase
             .from('customers')
             .select('id', { count: 'exact', head: true })
-          
-          console.log('📊 Total de clientes na tabela:', {
-            error: totalError,
-            count: totalCustomers
-          })
         } catch (totalError) {
-          console.log('⚠️ Erro ao contar clientes:', totalError)
         }
         
         // DEBUG: Verificar clientes com remotejid
@@ -485,19 +403,11 @@ const Disparador = () => {
             .not('remotejid', 'is', null)
             .neq('remotejid', '')
             .neq('remotejid', 'null')
-          
-          console.log('📊 Clientes com remotejid válido:', {
-            error: remotejidError,
-            count: withRemotejid
-          })
         } catch (remotejidError) {
-          console.log('⚠️ Erro ao verificar remotejid:', remotejidError)
         }
         
         // Tentar query principal - aplicando filtros de elegibilidade
         try {
-          console.log('🎯 TENTATIVA 3: Query direta com filtros de elegibilidade')
-          
           // Query principal excluindo clientes inelegíveis
           let query = supabase
             .from('customers')
@@ -512,54 +422,29 @@ const Disparador = () => {
           }
           
           const { data: customersData, error: customersError } = await query.limit(100)
-          
-          console.log('📊 Resultado Query Direta:', {
-            error: customersError,
-            data: customersData,
-            length: customersData?.length || 0
-          })
-          
           if (!customersError && customersData) {
             eligibleCustomers = customersData.map(customer => ({
               customer_id: customer.id,
               customer_name: customer.name,
               remotejid: customer.remotejid || `${customer.phone}@s.whatsapp.net`
             }))
-            console.log('✅ Query direta funcionou:', eligibleCustomers.length)
             console.log('📝 Amostra Query Direta:', eligibleCustomers.slice(0, 3))
           } else {
-            console.log('❌ Query direta falhou:', customersError?.message)
-            
             // DEBUG: Tentar query mais simples
-            console.log('🔄 Tentando query ainda mais simples...')
             const { data: simpleData, error: simpleError } = await supabase
               .from('customers')
               .select('id, name, phone')
               .limit(10)
-            
-            console.log('📊 Query simples:', {
-              error: simpleError,
-              data: simpleData,
-              length: simpleData?.length || 0
-            })
-            
             toast.error(`Erro ao carregar clientes: ${customersError?.message}`)
             return
           }
         } catch (customersError) {
-          console.log('❌ Erro na query direta:', customersError.message)
           toast.error(`Erro ao carregar clientes: ${customersError.message}`)
           return
         }
       }
-      
-      console.log('🎯 === RESULTADO FINAL ===')
-      console.log('✅ Clientes elegíveis encontrados:', eligibleCustomers?.length || 0)
       console.log('📝 Amostra de clientes elegíveis:', eligibleCustomers?.slice(0, 3))
-      console.log('🔍 Estrutura do primeiro cliente:', eligibleCustomers?.[0])
-      
       if (!eligibleCustomers || eligibleCustomers.length === 0) {
-        console.log('⚠️ === NENHUM CLIENTE ENCONTRADO ===')
         toast('⚠️ Nenhum cliente encontrado. Verifique se há clientes cadastrados com remotejid preenchido.', { 
           icon: '⚠️',
           duration: 4000 
@@ -569,26 +454,15 @@ const Disparador = () => {
         setShowCreateModal(true)
         return
       }
-      
-      console.log('🔄 Definindo estados do React...')
-      
       // Limitar a lista para apenas 30 clientes para melhor performance
       const limitedCustomers = eligibleCustomers.slice(0, 30)
       setCampaignCustomers(limitedCustomers)
       
       // Selecionar automaticamente todos os 30 clientes mostrados
       setSelectedCampaignCustomers(limitedCustomers)
-      
-      console.log('🎯 Estados definidos:')
-      console.log('📋 campaignCustomers:', limitedCustomers.length)
-      console.log('✅ selectedCampaignCustomers:', limitedCustomers.length)
-      
     } catch (error) {
-      console.error('💥 Erro geral ao carregar clientes:', error)
       toast.error(`Erro ao carregar clientes: ${error.message}`)
     }
-    
-    console.log('🚪 Abrindo modal de criação...')
     setShowCreateModal(true)
     
     // Toast de feedback após abrir o modal
@@ -604,12 +478,7 @@ const Disparador = () => {
     
     // DEBUG: Verificar estados após um pequeno delay
     setTimeout(() => {
-      console.log('🔍 === VERIFICAÇÃO FINAL DOS ESTADOS ===')
-      console.log('📋 campaignCustomers.length:', campaignCustomers.length)
-      console.log('✅ selectedCampaignCustomers.length:', selectedCampaignCustomers.length)
-      console.log('🚪 showCreateModal:', true)
       console.log('📝 Amostra campaignCustomers:', campaignCustomers.slice(0, 3))
-      console.log('🎯 Lista limitada a 30 clientes para melhor performance')
     }, 500)
   }
 
@@ -675,9 +544,6 @@ const Disparador = () => {
         remotejid: record.remotejid,
         message: record.message_content
       }))
-
-      console.log('Iniciando disparo pausado para:', customersData.length, 'clientes da campanha')
-
       try {
         // Atualizar status dos registros para 'pending'
         await supabase
@@ -692,8 +558,6 @@ const Disparador = () => {
         const result = await disparadorService.startTimedDispatchWithExistingRecords(campaignId, campaign)
         
         toast.success(`✅ Disparo pausado iniciado! ${customersData.length} mensagens agendadas.`)
-        console.log(`✅ Disparo pausado configurado para ${customersData.length} clientes`)
-        
         // Mostrar painel de controle do disparo pausado
         setShowTimedDispatchPanel(true)
         setSelectedCampaign({ id: campaignId })
@@ -703,11 +567,9 @@ const Disparador = () => {
         loadData()
         
       } catch (error) {
-        console.error('❌ Erro ao iniciar disparo:', error)
         toast.error(error.message || 'Erro ao iniciar disparo')
       }
     } catch (error) {
-      console.error('Error loading campaign customers:', error)
       toast.error('Erro ao carregar clientes da campanha')
     }
   }
@@ -725,7 +587,6 @@ const Disparador = () => {
       toast.success('Campanha pausada! Você pode retomá-la a qualquer momento.')
       loadData()
     } catch (error) {
-      console.error('Error pausing campaign:', error)
       toast.error('Erro ao pausar campanha')
     }
   }
@@ -773,8 +634,6 @@ const Disparador = () => {
   const handleUpdateRemoteJids = async () => {
     try {
       setLoading(true)
-      console.log('🔄 Iniciando conversão de Phone para RemoteJID...')
-
       // Buscar todos os clientes que têm phone
       const { data: customers, error: fetchError } = await supabase
         .from('customers')
@@ -785,9 +644,6 @@ const Disparador = () => {
       if (fetchError) {
         throw fetchError
       }
-
-      console.log(`📋 Encontrados ${customers.length} clientes com phone para processar`)
-
       let updatedCount = 0
       let skippedCount = 0
       let errorCount = 0
@@ -804,10 +660,8 @@ const Disparador = () => {
             .eq('id', customer.id)
 
           if (updateError) {
-            console.error(`❌ Erro ao atualizar cliente ${customer.name}:`, updateError)
             errorCount++
           } else {
-            console.log(`✅ ${customer.name}: ${customer.phone} → ${newRemotejid}`)
             updatedCount++
           }
         } else {
@@ -818,10 +672,7 @@ const Disparador = () => {
 
       const message = `✅ Conversão concluída! ${updatedCount} atualizados, ${skippedCount} pulados, ${errorCount} erros`
       toast.success(message)
-      console.log(`🎯 ${message}`)
-
     } catch (error) {
-      console.error('❌ Erro ao converter Phone para RemoteJID:', error)
       toast.error('Erro ao converter números de telefone')
     } finally {
       setLoading(false)
@@ -855,7 +706,6 @@ const Disparador = () => {
       toast.success('Campanha retomada! Disparos continuarão.')
       loadData()
     } catch (error) {
-      console.error('Error resuming campaign:', error)
       toast.error(error.message || 'Erro ao retomar campanha')
     }
   }
@@ -892,7 +742,6 @@ const Disparador = () => {
         .order('customer_name', { ascending: true })
       
       if (customersError) {
-        console.error('Erro ao carregar clientes da campanha:', customersError)
       }
       
       setSelectedCampaign({
@@ -902,16 +751,13 @@ const Disparador = () => {
       
       // Mostrar painel de controle apenas para campanhas com status 'dispatching'
       if (campaign.status === 'dispatching') {
-        console.log('📊 Campanha disparando - abrindo painel de controle')
         setShowTimedDispatchPanel(true)
         loadTimedDispatchStatus(campaign.id)
       } else {
         // Para outros status, mostrar modal de visualização normal
-        console.log('👁️ Campanha não está disparando - abrindo modal de visualização')
         setShowViewModal(true)
       }
     } catch (error) {
-      console.error('Erro ao carregar dados da campanha:', error)
       toast.error('Erro ao carregar dados da campanha')
     }
   }
@@ -955,7 +801,6 @@ const Disparador = () => {
       setShowCreateModal(true)
         
     } catch (error) {
-      console.error('Erro ao verificar status da campanha:', error)
       toast.error('Erro ao verificar status da campanha')
     }
   }
@@ -984,7 +829,6 @@ const Disparador = () => {
       toast.success('Campanha deletada com sucesso!')
       loadData()
     } catch (error) {
-      console.error('Error deleting campaign:', error)
       toast.error('Erro ao deletar campanha')
     } finally {
       setLoading(false)
@@ -999,8 +843,6 @@ const Disparador = () => {
       }
 
       setLoading(true)
-      console.log('Iniciando disparo pausado para:', selectedCustomers.length, 'clientes')
-
       // Buscar dados da campanha
       const { data: campaign, error: campaignError } = await supabase
         .from('disparador_campaigns')
@@ -1020,9 +862,6 @@ const Disparador = () => {
           message: messageContent
         }
       })
-
-      console.log('Enviando disparo pausado para:', customersData.length, 'clientes')
-
       try {
         // Disparo pausado (10 minutos entre cada envio)
         toast(`🕐 Iniciando disparo pausado para ${customersData.length} clientes (intervalo: 10 min)...`)
@@ -1030,14 +869,11 @@ const Disparador = () => {
         const result = await disparadorService.startTimedDispatch(selectedCampaign.id, customersData, campaign)
         
         toast.success(`✅ Disparo pausado iniciado! ${result.scheduled_count} mensagens agendadas.`)
-        console.log(`✅ Disparo pausado configurado para ${result.scheduled_count} clientes`)
-        
         // Mostrar painel de controle do disparo pausado
         setShowTimedDispatchPanel(true)
         loadTimedDispatchStatus(selectedCampaign.id)
         
       } catch (error) {
-        console.error('❌ Erro ao iniciar disparo:', error)
         toast.error(error.message || 'Erro ao iniciar disparo')
       }
 
@@ -1046,7 +882,6 @@ const Disparador = () => {
       setAvailableCustomers([])
       loadData()
     } catch (error) {
-      console.error('Error processing campaign:', error)
       toast.error('Erro ao processar disparo')
     } finally {
       setLoading(false)
@@ -1066,7 +901,6 @@ const Disparador = () => {
         .order('customer_name', { ascending: true })
       
       if (customersError) {
-        console.error('Erro ao carregar clientes da campanha ativa:', customersError)
       }
       
       setTimedDispatchStatus({
@@ -1075,17 +909,8 @@ const Disparador = () => {
       })
       
       // Debug: Verificar se o timer está ativo
-      console.log('🔍 === DEBUG TIMER STATUS ===')
-      console.log('📋 Campanha ID:', campaignId)
-      console.log('⏰ Timer ativo:', !!disparadorService.dispatchTimer)
-      console.log('📊 Campanha ativa no service:', disparadorService.activeCampaignId)
       console.log('💾 LocalStorage:', JSON.parse(localStorage.getItem('disparador_active_campaigns') || '[]'))
-      console.log('📈 Status da campanha:', status?.campaign?.status)
-      console.log('🔄 Progresso:', status?.progress)
-      console.log('👥 Clientes carregados:', campaignCustomers?.length || 0)
-      
     } catch (error) {
-      console.error('Error loading timed dispatch status:', error)
     }
   }
 
@@ -1096,7 +921,6 @@ const Disparador = () => {
       loadTimedDispatchStatus(campaignId)
       loadData()
     } catch (error) {
-      console.error('Error pausing timed dispatch:', error)
       toast.error('Erro ao pausar disparo')
     }
   }
@@ -1122,7 +946,6 @@ const Disparador = () => {
       loadTimedDispatchStatus(campaignId)
       loadData()
     } catch (error) {
-      console.error('Error resuming timed dispatch:', error)
       toast.error('Erro ao retomar disparo')
     }
   }
@@ -1135,7 +958,6 @@ const Disparador = () => {
       setTimedDispatchStatus(null)
       loadData()
     } catch (error) {
-      console.error('Error cancelling timed dispatch:', error)
       toast.error('Erro ao cancelar disparo')
     }
   }

@@ -8,9 +8,6 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { signOut, user } = useAuth()
   const location = useLocation()
   const { isMobile } = useResponsive()
-
-  console.log('Sidebar render - isOpen:', isOpen, 'isMobile:', isMobile)
-
   const handleSignOut = () => {
     signOut()
   }
@@ -19,7 +16,16 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const menuItems = [
     { path: '/', icon: BarChart3, label: 'Dashboard' },
-    { path: '/events', icon: Calendar, label: 'Eventos' },
+    {
+      path: '/events',
+      icon: Calendar,
+      label: 'Eventos',
+      hasChildren: true,
+      children: [
+        { path: '/events', label: 'Visão geral' },
+        { path: '/events/sectors', label: 'Setores' }
+      ]
+    },
     { path: '/orders', icon: ShoppingCart, label: 'Ingressos' },
     { path: '/customers', icon: Users, label: 'Clientes' },
     { path: '/disparador', icon: Send, label: 'Disparador' }
@@ -68,7 +74,6 @@ const Sidebar = ({ isOpen, onClose }) => {
             <button
               onClick={(e) => {
                 e.preventDefault()
-                console.log('Close button clicked')
                 onClose()
               }}
               style={{
@@ -129,46 +134,85 @@ const Sidebar = ({ isOpen, onClose }) => {
         <nav style={{ marginBottom: '2rem' }}>
           {menuItems.map((item) => {
             const Icon = item.icon
-            const active = isActive(item.path)
+            const active = isActive(item.path) || (item.children?.some(child => location.pathname.startsWith(child.path)) ?? false)
             
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={handleMenuClick}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.875rem 1rem',
-                  marginBottom: '0.5rem',
-                  borderRadius: '8px',
-                  textDecoration: 'none',
-                  color: active ? 'white' : '#64748b',
-                  backgroundColor: active ? '#8b5cf6' : 'transparent',
-                  fontWeight: active ? '600' : '500',
-                  fontSize: '0.95rem',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  boxShadow: active ? '0 4px 12px rgba(139, 92, 246, 0.25)' : 'none'
-                }}
-                onMouseOver={(e) => {
-                  if (!active) {
-                    e.target.style.backgroundColor = '#f3f0ff'
-                    e.target.style.color = '#8b5cf6'
-                    e.target.style.transform = 'translateX(4px)'
-                  }
-                }}
-                onMouseOut={(e) => {
-                  if (!active) {
-                    e.target.style.backgroundColor = 'transparent'
-                    e.target.style.color = '#64748b'
-                    e.target.style.transform = 'translateX(0)'
-                  }
-                }}
-              >
-                <Icon size={20} />
-                {item.label}
-              </Link>
+              <div key={item.path}>
+                <Link
+                  to={item.path}
+                  onClick={handleMenuClick}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.875rem 1rem',
+                    marginBottom: '0.5rem',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    color: active ? 'white' : '#64748b',
+                    backgroundColor: active ? '#8b5cf6' : 'transparent',
+                    fontWeight: active ? '600' : '500',
+                    fontSize: '0.95rem',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: active ? '0 4px 12px rgba(139, 92, 246, 0.25)' : 'none'
+                  }}
+                  onMouseOver={(e) => {
+                    if (!active) {
+                      e.target.style.backgroundColor = '#f3f0ff'
+                      e.target.style.color = '#8b5cf6'
+                      e.target.style.transform = 'translateX(4px)'
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (!active) {
+                      e.target.style.backgroundColor = 'transparent'
+                      e.target.style.color = '#64748b'
+                      e.target.style.transform = 'translateX(0)'
+                    }
+                  }}
+                >
+                  <Icon size={20} />
+                  {item.label}
+                </Link>
+                {item.hasChildren && (
+                  <div style={{ marginLeft: '1.75rem', marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    {item.children.map((child) => {
+                      const childActive = location.pathname === child.path
+                      return (
+                        <Link
+                          key={child.path}
+                          to={child.path}
+                          onClick={handleMenuClick}
+                          style={{
+                            padding: '0.5rem 0.75rem',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            fontSize: '0.85rem',
+                            fontWeight: childActive ? '600' : '500',
+                            color: childActive ? '#8b5cf6' : '#94a3b8',
+                            backgroundColor: childActive ? 'rgba(139, 92, 246, 0.1)' : 'transparent',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseOver={(e) => {
+                            if (!childActive) {
+                              e.target.style.backgroundColor = '#f8fafc'
+                              e.target.style.color = '#8b5cf6'
+                            }
+                          }}
+                          onMouseOut={(e) => {
+                            if (!childActive) {
+                              e.target.style.backgroundColor = 'transparent'
+                              e.target.style.color = '#94a3b8'
+                            }
+                          }}
+                        >
+                          {child.label}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             )
           })}
         </nav>
