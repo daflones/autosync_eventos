@@ -802,7 +802,6 @@ const Orders = () => {
                   {/* Right Content */}
                   <div style={{
                     display: 'flex',
-                    alignItems: 'center',
                     gap: isMobile ? '0.75rem' : '1rem',
                     flex: 1,
                     flexDirection: isMobile ? 'column' : 'row',

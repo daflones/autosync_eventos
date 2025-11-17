@@ -32,6 +32,7 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
     horario: '',
     local: '',
     informacoes: '',
+    image_url: '',
     setores: [defaultSector()],
     dates: [defaultDate()]
   })
@@ -53,6 +54,7 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
         horario: event.horario || '',
         local: event.local || '',
         informacoes: event.informacoes || '',
+        image_url: event.image_url || '',
         dates: Array.isArray(event.dates) && event.dates.length > 0
           ? event.dates.map(dateString => defaultDate(typeof dateString === 'string' ? dateString : dateString?.date || ''))
           : Array.isArray(event.datas) && event.datas.length > 0
@@ -75,6 +77,7 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
         horario: '',
         local: '',
         informacoes: '',
+        image_url: '',
         dates: [defaultDate()],
         setores: [defaultSector()]
       })
@@ -291,6 +294,7 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
         horario: formData.horario || null,
         local: formData.local?.trim() || null,
         informacoes: formData.informacoes || null,
+        image_url: formData.image_url?.trim() || null,
         data: normalizedDates[0] || null,
         sectors_config: normalizedSectors
       }
@@ -369,6 +373,43 @@ const EventModal = ({ show, onHide, onSuccess, event = null }) => {
                     value={formData.local}
                     onChange={(e) => handleChangeField('local', e.target.value)}
                   />
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={12}>
+                <Form.Group className="mb-4">
+                  <Form.Label>Imagem do evento (URL)</Form.Label>
+                  <Form.Control
+                    type="url"
+                    placeholder="https://..."
+                    value={formData.image_url}
+                    onChange={(e) => handleChangeField('image_url', e.target.value)}
+                  />
+                  <Form.Text muted>
+                    Informe um link direto para a imagem. Utilize proporção horizontal (ex: 1200x675) para melhor resultado.
+                  </Form.Text>
+                  {formData.image_url?.trim() && (
+                    <div style={{
+                      marginTop: '0.75rem',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      border: '1px solid #e2e8f0',
+                      maxHeight: '200px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#f1f5f9'
+                    }}>
+                      <img
+                        src={formData.image_url.trim()}
+                        alt="Pré-visualização do evento"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
+                    </div>
+                  )}
                 </Form.Group>
               </Col>
             </Row>

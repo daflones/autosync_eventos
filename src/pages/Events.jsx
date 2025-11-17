@@ -233,7 +233,6 @@ const Events = () => {
       }}>
         <div style={{ 
           display: 'flex', 
-          alignItems: 'center', 
           gap: '0.75rem',
           flexDirection: isMobile ? 'column' : 'row',
           alignItems: isMobile ? 'stretch' : 'center',
@@ -494,6 +493,7 @@ const Events = () => {
 
             const sectors = Array.isArray(event.sectors_config) ? event.sectors_config : []
             const activeSectorsCount = sectors.filter((sector) => sector?.active !== false).length
+            const eventImage = event.image_url?.trim() || null
 
             return (
               <div
@@ -503,12 +503,30 @@ const Events = () => {
                 {/* Left Content */}
                 <div style={{
                   display: 'flex',
-                  alignItems: 'center',
                   gap: isMobile ? '0.75rem' : '1rem',
                   flex: 1,
                   flexDirection: isMobile ? 'column' : 'row',
                   alignItems: isMobile ? 'stretch' : 'center'
                 }}>
+                  {eventImage && (
+                    <div style={{
+                      width: isMobile ? '72px' : '64px',
+                      height: isMobile ? '72px' : '64px',
+                      borderRadius: '999px',
+                      overflow: 'hidden',
+                      border: '2px solid #e2e8f0',
+                      boxShadow: '0 2px 6px rgba(15, 23, 42, 0.1)',
+                      flexShrink: 0,
+                      backgroundColor: '#e2e8f0'
+                    }}>
+                      <img
+                        src={eventImage}
+                        alt={`Imagem do evento ${event.nome}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
+                    </div>
+                  )}
                   
                   {/* Event Info */}
                   <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
@@ -544,151 +562,172 @@ const Events = () => {
                         border: '1px solid #e2e8f0',
                         boxShadow: '0 2px 8px rgba(148, 163, 184, 0.12)',
                         display: 'flex',
-                        flexDirection: 'column',
-                        gap: '1.5rem'
+                        flexDirection: isMobile ? 'column' : 'row',
+                        gap: isMobile ? '1.5rem' : '2rem'
                       }}>
-                        <section>
+                        {eventImage && (
                           <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            marginBottom: '0.75rem'
+                            flex: isMobile ? '0 0 auto' : '0 0 260px',
+                            maxWidth: isMobile ? '100%' : '260px',
+                            alignSelf: isMobile ? 'center' : 'flex-start',
+                            borderRadius: '18px',
+                            overflow: 'hidden',
+                            border: '1px solid #e2e8f0',
+                            backgroundColor: '#f1f5f9',
+                            boxShadow: '0 4px 12px rgba(30, 41, 59, 0.12)'
                           }}>
-                            <strong style={{ color: '#1f2937' }}>Datas do evento</strong>
-                            {event.horario && (
-                              <span style={{ color: '#6366f1', fontWeight: 600, fontSize: '0.8rem' }}>
-                                Horário padrão: {event.horario}
+                            <img
+                              src={eventImage}
+                              alt={`Imagem do evento ${event.nome}`}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              onError={(e) => { e.currentTarget.style.display = 'none' }}
+                            />
+                          </div>
+                        )}
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                          <section>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              marginBottom: '0.75rem'
+                            }}>
+                              <strong style={{ color: '#1f2937' }}>Datas do evento</strong>
+                              {event.horario && (
+                                <span style={{ color: '#6366f1', fontWeight: 600, fontSize: '0.8rem' }}>
+                                  Horário padrão: {event.horario}
+                                </span>
+                              )}
+                            </div>
+                            {formattedDates.length > 0 ? (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                {formattedDates.map((dateInfo) => (
+                                  <span
+                                    key={dateInfo.id}
+                                    style={{
+                                      padding: '0.35rem 0.75rem',
+                                      backgroundColor: '#e0e7ff',
+                                      borderRadius: '999px',
+                                      fontSize: '0.8rem',
+                                      color: '#312e81',
+                                      fontWeight: 600
+                                    }}
+                                  >
+                                    {dateInfo.label}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.85rem' }}>
+                                Nenhuma data cadastrada.
                               </span>
                             )}
-                          </div>
-                          {formattedDates.length > 0 ? (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                              {formattedDates.map((dateInfo) => (
-                                <span
-                                  key={dateInfo.id}
-                                  style={{
-                                    padding: '0.35rem 0.75rem',
-                                    backgroundColor: '#e0e7ff',
-                                    borderRadius: '999px',
-                                    fontSize: '0.8rem',
-                                    color: '#312e81',
-                                    fontWeight: 600
-                                  }}
-                                >
-                                  {dateInfo.label}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.85rem' }}>
-                              Nenhuma data cadastrada.
-                            </span>
-                          )}
-                        </section>
+                          </section>
 
-                        <section>
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            marginBottom: '0.75rem'
-                          }}>
-                            <strong style={{ color: '#1f2937' }}>Setores</strong>
-                            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                              {activeSectorsCount} ativos · {sectors.length} cadastrados
-                            </span>
-                          </div>
-                          {sectors.length > 0 ? (
+                          <section>
                             <div style={{
-                              display: 'grid',
-                              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))',
-                              gap: '0.8rem'
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              marginBottom: '0.75rem'
                             }}>
-                              {sectors.map((sector, idx) => (
-                                <div
-                                  key={`${sector?.sector_id || sector?.name || idx}`}
-                                  style={{
-                                    border: '1px solid #e2e8f0',
-                                    borderRadius: '10px',
-                                    padding: '0.9rem',
-                                    backgroundColor: 'white',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '0.4rem'
-                                  }}
-                                >
-                                  <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center'
-                                  }}>
-                                    <span style={{ fontWeight: 600, color: '#1f2937' }}>
-                                      {sector?.name || 'Setor sem nome'}
-                                    </span>
-                                    <span style={{
-                                      fontSize: '0.75rem',
-                                      padding: '0.15rem 0.55rem',
-                                      borderRadius: '999px',
-                                      backgroundColor: sector?.active !== false ? '#dcfce7' : '#fee2e2',
-                                      color: sector?.active !== false ? '#15803d' : '#b91c1c'
-                                    }}>
-                                      {sector?.active !== false ? 'Ativo' : 'Inativo'}
-                                    </span>
-                                  </div>
-                                  <div style={{ fontSize: '0.8rem', color: '#475569' }}>
-                                    <div>
-                                      <strong style={{ color: '#1e293b' }}>Preço:</strong>{' '}
-                                      {sector?.price ? sector.price : 'Não informado'}
-                                    </div>
-                                    <div>
-                                      <strong style={{ color: '#1e293b' }}>Lote:</strong>{' '}
-                                      {sector?.lot ? sector.lot : 'Não informado'}
-                                    </div>
-                                  </div>
-                                  {sector?.rules?.notes && (
+                              <strong style={{ color: '#1f2937' }}>Setores</strong>
+                              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                                {activeSectorsCount} ativos · {sectors.length} cadastrados
+                              </span>
+                            </div>
+                            {sectors.length > 0 ? (
+                              <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))',
+                                gap: '0.8rem'
+                              }}>
+                                {sectors.map((sector, idx) => (
+                                  <div
+                                    key={`${sector?.sector_id || sector?.name || idx}`}
+                                    style={{
+                                      border: '1px solid #e2e8f0',
+                                      borderRadius: '10px',
+                                      padding: '0.9rem',
+                                      backgroundColor: 'white',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: '0.4rem'
+                                    }}
+                                  >
                                     <div style={{
-                                      marginTop: '0.35rem',
-                                      padding: '0.5rem',
-                                      borderRadius: '8px',
-                                      backgroundColor: '#f1f5f9',
-                                      fontSize: '0.78rem',
-                                      color: '#475569',
-                                      whiteSpace: 'pre-wrap'
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center'
                                     }}>
-                                      {sector.rules.notes}
+                                      <span style={{ fontWeight: 600, color: '#1f2937' }}>
+                                        {sector?.name || 'Setor sem nome'}
+                                      </span>
+                                      <span style={{
+                                        fontSize: '0.75rem',
+                                        padding: '0.15rem 0.55rem',
+                                        borderRadius: '999px',
+                                        backgroundColor: sector?.active !== false ? '#dcfce7' : '#fee2e2',
+                                        color: sector?.active !== false ? '#15803d' : '#b91c1c'
+                                      }}>
+                                        {sector?.active !== false ? 'Ativo' : 'Inativo'}
+                                      </span>
                                     </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.85rem' }}>
-                              Nenhum setor configurado.
-                            </span>
-                          )}
-                        </section>
+                                    <div style={{ fontSize: '0.8rem', color: '#475569' }}>
+                                      <div>
+                                        <strong style={{ color: '#1e293b' }}>Preço:</strong>{' '}
+                                        {sector?.price ? sector.price : 'Não informado'}
+                                      </div>
+                                      <div>
+                                        <strong style={{ color: '#1e293b' }}>Lote:</strong>{' '}
+                                        {sector?.lot ? sector.lot : 'Não informado'}
+                                      </div>
+                                    </div>
+                                    {sector?.rules?.notes && (
+                                      <div style={{
+                                        marginTop: '0.35rem',
+                                        padding: '0.5rem',
+                                        borderRadius: '8px',
+                                        backgroundColor: '#f1f5f9',
+                                        fontSize: '0.78rem',
+                                        color: '#475569',
+                                        whiteSpace: 'pre-wrap'
+                                      }}>
+                                        {sector.rules.notes}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.85rem' }}>
+                                Nenhum setor configurado.
+                              </span>
+                            )}
+                          </section>
 
-                        <section>
-                          <strong style={{ color: '#1f2937', display: 'block', marginBottom: '0.5rem' }}>
-                            Informações gerais
-                          </strong>
-                          {event.informacoes ? (
-                            <div style={{
-                              color: '#475569',
-                              backgroundColor: '#eef2ff',
-                              borderRadius: '8px',
-                              padding: '0.75rem',
-                              whiteSpace: 'pre-wrap',
-                              lineHeight: 1.45
-                            }}>
-                              {event.informacoes}
-                            </div>
-                          ) : (
-                            <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.85rem' }}>
-                              Nenhuma descrição foi adicionada para este evento.
-                            </span>
-                          )}
-                        </section>
+                          <section>
+                            <strong style={{ color: '#1f2937', display: 'block', marginBottom: '0.5rem' }}>
+                              Informações gerais
+                            </strong>
+                            {event.informacoes ? (
+                              <div style={{
+                                color: '#475569',
+                                backgroundColor: '#eef2ff',
+                                borderRadius: '8px',
+                                padding: '0.75rem',
+                                whiteSpace: 'pre-wrap',
+                                lineHeight: 1.45
+                              }}>
+                                {event.informacoes}
+                              </div>
+                            ) : (
+                              <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.85rem' }}>
+                                Nenhuma descrição foi adicionada para este evento.
+                              </span>
+                            )}
+                          </section>
+                        </div>
                       </div>
                     )}
                   </div>
